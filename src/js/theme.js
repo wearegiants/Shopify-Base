@@ -1,3 +1,5 @@
+// @codekit-append "_notifications.js"
+
 function homeEqualize() {
 
 	$('#home--map').equalize({
