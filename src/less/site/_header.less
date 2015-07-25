@@ -1,0 +1,31 @@
+#header {
+
+   padding: @spaced/1.5 0;
+
+   &.chin {
+      padding: @spaced 0 @spaced*4;      
+   }
+
+   &.forehead {
+      padding: @spaced*4 0 @spaced/1.5;      
+   }
+
+   &.fivehead {
+      padding: @spaced*5 0 @spaced/1.5;      
+   }
+
+   &.fixed {
+
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 999;
+      transition: background-color 300ms ease;
+
+      &:hover {
+         background-color: @white;
+      }
+
+   }
+
+}
