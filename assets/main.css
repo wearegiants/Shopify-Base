@@ -1931,9 +1931,9 @@
   visibility: hidden;
   width: 40px;
   height: 40px;
-  background: #ffffff;
+  background: transparent;
   border-radius: 100%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+  box-shadow: 0;
   margin: auto;
   opacity: 0;
   overflow: hidden;
@@ -1966,7 +1966,7 @@
 .fs-carousel-enabled .fs-carousel-control_previous:before {
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-right: 10.5px solid #333333;
+  border-right: 10.5px solid #ffffff;
   margin-left: 13.7px;
 }
 .fs-carousel-enabled .fs-carousel-control_next {
@@ -1975,7 +1975,7 @@
 .fs-carousel-enabled .fs-carousel-control_next:before {
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-left: 10.5px solid #333333;
+  border-left: 10.5px solid #ffffff;
   margin-right: 13.7px;
 }
 .fs-carousel-enabled .fs-carousel-control_disabled {
@@ -3713,6 +3713,7 @@ form input[type=search]-burg {
   margin-bottom: 0;
   overflow: hidden;
   padding: 0;
+  z-index: 99;
   height: 80px;
   -webkit-transition: 300ms ease;
           transition: 300ms ease;
@@ -3737,8 +3738,7 @@ form input[type=search]-burg {
   margin-bottom: 0;
 }
 .alert-notice {
-  background: #333333;
-  color: #ffffff;
+  background: #fcede6;
 }
 body,
 html {

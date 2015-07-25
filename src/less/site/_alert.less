@@ -6,6 +6,7 @@
    margin-bottom: 0;
    overflow: hidden;
    padding: 0;
+   z-index: 99;
    height: @alertHeight;
    .transition();
    transform: translate(0, -@alertHeight);
@@ -24,8 +25,7 @@
    }
 
    &-notice {
-      background: @black;
-      color: @white;
+      background: @notice;
    }
 
 }

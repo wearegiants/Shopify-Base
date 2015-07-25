@@ -9,21 +9,20 @@
    </div>
 </div>
 
-<header id="header" class="chin">
+<header id="header" class="forehead">
    <div class="fs-row">
-      <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-half">
+      <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-3 fs-sm-half">
          <a href="?page=collection" class="btn btn-nav btn-burg fs-md-hide fs-lg-hide">&nbsp;</a>
-         <a href="/" class="btn btn-nav btn-logo">Noon Goons</a>
+         <a href="/" class="btn btn-nav btn-logo">NOON GOONS</a>
       </nav>
       <nav id="header--nav" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
          <a href="?page=collection" class="btn btn-nav">Shop</a>
-         <a href="?page=collection" class="btn btn-nav">Sale</a>
-         <a href="?page=collection" class="btn btn-nav">Stockist</a>
+         <a href="?page=collection" class="btn btn-nav">Stockists</a>
+         <a href="#" class="btn btn-nav fs-sm-hide">Account</a>
       </nav>
-      <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-half text-right">
-         <a href="#" class="btn btn-nav">Account</a>
-         <a href="#" class="btn btn-nav">Cart 0</a>
-         <a href="#" class="btn btn-nav ss-gizmo ss-search"></a>
+      <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-1 fs-sm-half text-right">
+         <a href="#" class="btn btn-nav"><span class="fs-sm-hide">Cart</span> 0</a>
+         <a href="#" class="btn btn-nav ss-gizmo ss-search fs-sm-hide"></a>
       </nav>
    </div>
 </header>
