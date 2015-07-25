@@ -3329,6 +3329,14 @@ form input[type=search]-outline-blue {
   color: #29a5dc;
   box-shadow: 0 0 0 2px #29a5dc;
 }
+form input[type=submit]-burg,
+form input[type=search]-burg {
+  min-width: 20px;
+  background: url('/assets/burg.svg') center center no-repeat;
+  background-size: contain;
+  margin-right: 12.5px;
+  opacity: .5;
+}
 .text-left {
   text-align: left;
 }
@@ -3474,6 +3482,13 @@ form input[type=search]-outline-blue {
 .btn-outline-blue {
   color: #29a5dc;
   box-shadow: 0 0 0 2px #29a5dc;
+}
+.btn-burg {
+  min-width: 20px;
+  background: url('/assets/burg.svg') center center no-repeat;
+  background-size: contain;
+  margin-right: 12.5px;
+  opacity: .5;
 }
 .banner {
   background: #000;
@@ -3694,21 +3709,36 @@ form input[type=search]-outline-blue {
   -webkit-font-smoothing: antialiased;
 }
 .alert {
-  position: relative;
   width: 100%;
-  height: 0;
   margin-bottom: 0;
   overflow: hidden;
   padding: 0;
+  height: 80px;
   -webkit-transition: 300ms ease;
           transition: 300ms ease;
+  -webkit-transform: translate(0, -80px);
+      -ms-transform: translate(0, -80px);
+          transform: translate(0, -80px);
+}
+@media screen and (min-width: 300px) {
+  .alert {
+    position: relative;
+  }
+}
+@media screen and (min-width: 740px) {
+  .alert {
+    position: fixed;
+  }
 }
 .alert-active {
-  height: 75px;
+  -webkit-transform: translate(0, 0);
+      -ms-transform: translate(0, 0);
+          transform: translate(0, 0);
   margin-bottom: 0;
 }
 .alert-notice {
-  background: #fcede6;
+  background: #333333;
+  color: #ffffff;
 }
 body,
 html {
@@ -3731,14 +3761,35 @@ html {
 #header {
   padding: 16.66666667px 0;
 }
-#header.chin {
-  padding: 25px 0 100px;
+@media screen and (min-width: 300px) {
+  #header.chin {
+    padding: 16.66666667px 0;
+  }
 }
-#header.forehead {
-  padding: 100px 0 16.66666667px;
+@media screen and (min-width: 740px) {
+  #header.chin {
+    padding: 37.5px 0 100px;
+  }
 }
-#header.fivehead {
-  padding: 125px 0 16.66666667px;
+@media screen and (min-width: 300px) {
+  #header.forehead {
+    padding: 16.66666667px 0;
+  }
+}
+@media screen and (min-width: 740px) {
+  #header.forehead {
+    padding: 100px 0 16.66666667px;
+  }
+}
+@media screen and (min-width: 300px) {
+  #header.fivehead {
+    padding: 16.66666667px 0;
+  }
+}
+@media screen and (min-width: 740px) {
+  #header.fivehead {
+    padding: 125px 0 16.66666667px;
+  }
 }
 #header.fixed {
   position: fixed;

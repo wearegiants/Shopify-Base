@@ -1,20 +1,31 @@
 .alert {
 
-   position: relative;
+   @alertHeight: (@spaced*3)+5;
+
    width: 100%;
-   height: 0;
    margin-bottom: 0;
    overflow: hidden;
    padding: 0;
+   height: @alertHeight;
    .transition();
+   transform: translate(0, -@alertHeight);
+
+   @media @min {
+      position: relative;
+   }
+
+   @media @tablet {
+      position: fixed;
+   }
 
    &-active {
-      height: 75px;
+      transform: translate(0, 0);
       margin-bottom: 0;
    }
 
    &-notice {
-      background: @notice;
+      background: @black;
+      color: @white;
    }
 
 }

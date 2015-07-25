@@ -1,9 +1,11 @@
 <div class="fs-row">
    <nav class="breadcrumbs fs-cell fs-full-all">
-      <a class="btn btn-nav btn-sm" href="#">All</a>
-      <a class="btn btn-nav btn-sm" href="#">Spring 15</a>
-      <a class="btn btn-nav btn-sm" href="#">Spring 16</a>
-      <a class="btn btn-nav btn-sm" href="#">Winter 15</a>
+      <span class="fs-lg-push-6">
+         <a class="btn btn-nav btn-sm" href="#">All</a>
+         <a class="btn btn-nav btn-sm" href="#">Spring 15</a>
+         <a class="btn btn-nav btn-sm" href="#">Spring 16</a>
+         <a class="btn btn-nav btn-sm" href="#">Winter 15</a>
+      </span>
    </nav>
 </div>
 
@@ -19,7 +21,7 @@
    </div>
 </div>
 
-<div class="collection--baner banner wallpaper" data-background-options='{"source":"/assets/collection-bg.jpg"}'>
+<div class="collection--baner banner wallpaper" data-background-options='{"source":"/assets/collection-bg.jpg"}' style="display:none">
    <div class="centered centered-full">
       <div class="fs-row">
          <div class="fs-cell fs-full-all">

@@ -3,15 +3,31 @@
    padding: @spaced/1.5 0;
 
    &.chin {
-      padding: @spaced 0 @spaced*4;      
+      @media @min {
+         padding: @spaced/1.5 0;
+      }
+      @media @tablet {
+         padding: @spaced*1.5 0 @spaced*4;
+      }    
    }
 
    &.forehead {
-      padding: @spaced*4 0 @spaced/1.5;      
+      @media @min {
+         padding: @spaced/1.5 0;
+      }
+      @media @tablet {
+         padding: @spaced*4 0 @spaced/1.5;      
+      }
+      
    }
 
    &.fivehead {
-      padding: @spaced*5 0 @spaced/1.5;      
+      @media @min {
+         padding: @spaced/1.5 0;
+      }
+      @media @tablet {
+         padding: @spaced*5 0 @spaced/1.5;      
+      }
    }
 
    &.fixed {

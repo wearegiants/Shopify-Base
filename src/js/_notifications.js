@@ -1,4 +1,6 @@
 $('.close-alert').on('click',function(event){
    event.preventDefault();
-   $(".alert").removeClass('alert-active');
+   $(".alert").transition({
+      height: 0
+   },300,'snap');
 });

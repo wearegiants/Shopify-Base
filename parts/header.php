@@ -9,10 +9,10 @@
    </div>
 </div>
 
-<header id="header" class="fivehead">
+<header id="header" class="chin">
    <div class="fs-row">
       <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-half">
-         <a href="/" class="btn btn-nav fs-md-hide fs-lg-hide">Menu</a>
+         <a href="?page=collection" class="btn btn-nav btn-burg fs-md-hide fs-lg-hide">&nbsp;</a>
          <a href="/" class="btn btn-nav btn-logo">Noon Goons</a>
       </nav>
       <nav id="header--nav" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
