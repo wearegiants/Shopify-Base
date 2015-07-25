@@ -1293,6 +1293,36 @@
 		"strictMath": 0,
 		"strictUnits": 0
 		},
+	"\/src\/bower_components\/Formstone\/src\/less\/readme.html": {
+		"fileType": 8192,
+		"ignore": 1,
+		"ignoreWasSetByUser": 0,
+		"inputAbbreviatedPath": "\/src\/bower_components\/Formstone\/src\/less\/readme.html",
+		"outputAbbreviatedPath": "No Output Path",
+		"outputPathIsOutsideProject": 0,
+		"outputPathIsSetByUser": 0
+		},
+	"\/src\/bower_components\/Formstone\/src\/less\/readme.md": {
+		"criticStyle": 0,
+		"enableFootnotes": 0,
+		"enableLabels": 1,
+		"enableSmartQuotes": 1,
+		"escapeLineBreaks": 0,
+		"fileType": 4096,
+		"ignore": 0,
+		"ignoreWasSetByUser": 0,
+		"inputAbbreviatedPath": "\/src\/bower_components\/Formstone\/src\/less\/readme.md",
+		"maskEmailAddresses": 1,
+		"outputAbbreviatedPath": "\/src\/bower_components\/Formstone\/src\/less\/readme.html",
+		"outputFormat": 0,
+		"outputPathIsOutsideProject": 0,
+		"outputPathIsSetByUser": 0,
+		"outputStyle": 0,
+		"parseMetadata": 1,
+		"processHTML": 0,
+		"randomFootnoteNumbers": 0,
+		"useCompatibilityMode": 0
+		},
 	"\/src\/bower_components\/Formstone\/src\/less\/scrollbar.less": {
 		"allowInsecureImports": 0,
 		"createSourceMap": 0,
