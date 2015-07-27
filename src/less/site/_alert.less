@@ -1,6 +1,13 @@
-.alert {
+@alertHeight: (@spaced*3);
 
-   @alertHeight: (@spaced*3)+5;
+#wrapper.dismissedalert {
+
+   .transition();
+   transform: translate(0, -@alertHeight);
+
+}
+
+.alert {
 
    width: 100%;
    margin-bottom: 0;
@@ -8,15 +15,13 @@
    padding: 0;
    z-index: 99;
    height: @alertHeight;
-   .transition();
-   transform: translate(0, -@alertHeight);
-
+   
    @media @min {
       position: relative;
    }
 
    @media @tablet {
-      position: fixed;
+//      position: fixed;
    }
 
    &-active {

@@ -31,19 +31,21 @@
    </div>
 </div>
 
-
+<div id="product-grid" class="text-center">
 <div class="fs-row">
    <?php $productWidth = 'fs-lg-4 fs-md-half fs-sm-full'; ?>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="fs-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <?php $featureWidth = 'fs-lg-8 fs-md-6 fs-sm-full'; ?>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $featureWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $featureWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+</div>
 </div>

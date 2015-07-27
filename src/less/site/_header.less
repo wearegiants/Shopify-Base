@@ -1,6 +1,29 @@
 #header {
 
    padding: @spaced/1.5 0;
+   .transition();
+   background: @white;
+
+   &-mobile {
+      padding: @spaced/1.5 0;
+      .transition();      
+      position: absolute;
+      top: 100%;
+      width: 100%;
+      color: @white;
+
+      a {
+         color: inherit;
+      }
+
+      &.mobile-menu {
+
+         &--active {
+            transform: translate(0, -100%);
+         }
+
+      }
+   }
 
    &.chin {
       @media @min {
@@ -40,6 +63,21 @@
 
       &:hover {
          background-color: @white;
+      }
+
+   }
+
+   &-wrapper {
+      overflow: hidden;
+      position: relative;
+      background: @black;
+   }
+
+   &.mobile-menu {
+
+      &--active {
+         transform: translate(0, -100%);
+         opacity: .8;
       }
 
    }

@@ -31,9 +31,11 @@
 
 <body class="fs-grid fs-grid-fluid">
 
+<div id="wrapper">
 <?php include('parts/header.php') ?>
 <div id="content"><?php include('parts/content.php') ?></div>
 <?php include('parts/footer.php') ?>
+</div>
 
 <script type='text/javascript' src='assets/vendor.min.js'></script>
 <script type='text/javascript' src='assets/main.min.js'></script>
