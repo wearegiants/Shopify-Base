@@ -1,5 +1,7 @@
 // Dependencies: Setup.less
 
+@fs-grid-gutter:                  1.0416666666666667%;
+
 // Transitions
 
 *:link,
@@ -135,6 +137,9 @@ hr {
   margin: @spaced 0;
   &.thin {
     background: @lighterGray;
+  }
+  &.compact {
+    margin: @fs-grid-gutter 0;
   }
 }
 

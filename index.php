@@ -32,7 +32,7 @@
 <body class="fs-grid fs-grid-fluid">
 
 <div id="wrapper">
-<?php include('parts/header.php') ?>
+<?php include('parts/header-centered.php') ?>
 <div id="content"><?php include('parts/content.php') ?></div>
 <?php include('parts/footer.php') ?>
 </div>

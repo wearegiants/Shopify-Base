@@ -3109,6 +3109,9 @@ hr {
 hr.thin {
   background: #e7e7ec;
 }
+hr.compact {
+  margin: 1.04166667% 0;
+}
 iframe {
   border: none;
 }
@@ -3546,6 +3549,9 @@ form input[type=search]-burg {
     height: 1000px;
   }
 }
+.banner-padded {
+  margin: 0 50px;
+}
 .banner h1 {
   color: inherit;
 }
@@ -3747,7 +3753,8 @@ html {
 .home-module {
   display: block;
   background: #f2f2f2;
-  margin-bottom: 25px;
+  margin-top: 2.08333333%;
+  margin-bottom: 2.08333333%;
 }
 .home-module.small {
   height: 400px;
@@ -3959,4 +3966,19 @@ html {
 }
 .product--grid-wrapper {
   padding: 0 25px 75px;
+}
+#product--desc ul {
+  padding: 0;
+  margin-bottom: 0;
+}
+#product--desc ul li {
+  border-top: 1px solid #e7e7ec;
+  margin: 0;
+  padding: 15px 0;
+}
+#product--desc ul li:last-child {
+  border-bottom: 1px solid #e7e7ec;
+}
+#product--desc ul li:before {
+  display: none;
 }
