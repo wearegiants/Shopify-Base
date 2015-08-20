@@ -10,7 +10,7 @@
 </div>
 
 <div id="header-wrapper">
-   <header id="header">
+   <header id="header" class="forehead">
       <div class="fs-row">
          <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-3 fs-sm-half">
             <a href="?page=collection" class="btn btn-nav btn-burg fs-md-hide fs-lg-hide">&nbsp;</a>
@@ -22,8 +22,8 @@
             <a href="#" class="btn btn-nav fs-sm-hide">Account</a>
          </nav>
          <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-1 fs-sm-half text-right">
-            <a href="#" class="btn btn-nav"><span class="fs-sm-hide">Cart</span> 0</a>
-            <a href="#" class="btn btn-nav ss-gizmo ss-search fs-sm-hide"></a>
+            <a href="?page=cart" class="btn btn-nav"><span class="fs-sm-hide">Cart</span> 0</a>
+            <!--<a href="#" class="btn btn-nav ss-gizmo ss-search fs-sm-hide"></a>-->
          </nav>
       </div>
    </header>

@@ -3,8 +3,11 @@
 
 $(document).ready(function(){
 
-   $(".wallpaper").background();
-   $(".carousel").carousel();
-   $(".equal").equalize();
-	
+	$(".wallpaper").background();
+	$(".carousel").carousel();
+	$(".equal").equalize();
+	$(".cart-item").equalize({
+		target: ".cart-item-cell"
+	});
+
 });

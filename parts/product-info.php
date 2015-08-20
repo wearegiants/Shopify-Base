@@ -13,4 +13,7 @@
          <li>Made in France</li>
       </ul>
    </div>
+   <div id="product--add">
+      
+   </div>
 </div>

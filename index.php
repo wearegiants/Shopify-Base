@@ -29,10 +29,10 @@
 
 </head>
 
-<body class="fs-grid fs-grid-fluid">
+<body class="fs-grid">
 
 <div id="wrapper">
-<?php include('parts/header-centered.php') ?>
+<?php include('parts/header.php') ?>
 <div id="content"><?php include('parts/content.php') ?></div>
 <?php include('parts/footer.php') ?>
 </div>
