@@ -5,13 +5,25 @@
 }
 
 #product-grid {
-   margin: 0 -@spacing;
+   
+   &.spaced {
+      margin: 0 -@spacing;   
+   }
+
 }
 
 .product--grid {
 
+   &-thumb {
+      margin-bottom: @spaced/2;
+   }
+
+   &-title {
+      margin: 0;
+   }
+
    &-cell {
-      display: inline-block;
+      //display: inline-block;
    }
 
    &-wrapper {

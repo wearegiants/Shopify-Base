@@ -9,15 +9,18 @@
    </nav>
 </div>
 
-<div class="fs-row">
+<div class="collection--sort fs-row">
    <div class="fs-cell fs-full-all sort">
       <label class="btn btn-nav btn-sm">Sort by:</label>
-         <select class="btn btn-nav btn-sm">
-            <option>Newest</option>
-            <option>Featured</option>
-            <option>Best Selling</option>
-         </select>
-      </div>
+      <select class="btn btn-nav btn-sm">
+         <option>Newest</option>
+         <option>Featured</option>
+         <option>Best Selling</option>
+      </select>
+      <span class="fl-right">
+         <button class="btn btn-sm">Grid</button>
+         <button class="btn btn-sm btn-disabled btn-last">List</button>
+      </span>
    </div>
 </div>
 
@@ -31,21 +34,21 @@
    </div>
 </div>
 
-<div id="product-grid" class="text-center">
+<div id="product-grid" class="spaced text-center">
 <div class="fs-row">
-   <?php $productWidth = 'fs-lg-4 fs-md-half fs-sm-full'; ?>
-   <?php $featureWidth = 'fs-lg-8 fs-md-6 fs-sm-full'; ?>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $featureWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $featureWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell equal <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <?php $productWidth = 'fs-cell fs-lg-4 fs-md-half fs-sm-full'; ?>
+   <?php $featureWidth = 'fs-cell fs-lg-8 fs-md-6 fs-sm-full'; ?>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
+   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
 </div>
 </div>
