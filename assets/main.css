@@ -2919,14 +2919,6 @@ img.mfp-img {
 .bg.lightgray {
   background: #f2f2f2;
 }
-.left {
-  float: left;
-  margin-right: 20px;
-}
-.right {
-  float: right;
-  margin-left: 20px;
-}
 .fl-left {
   float: left;
 }
@@ -2964,6 +2956,12 @@ img.rounded {
   -webkit-transform-origin: center center;
       -ms-transform-origin: center center;
           transform-origin: center center;
+}
+.text-right {
+  text-align: right;
+}
+.text-center {
+  text-align: center;
 }
 .centered {
   left: 50%;
@@ -3586,6 +3584,21 @@ form input[type=search]-burg {
 @media screen and (min-width: 980px) {
   .banner-large {
     height: 1000px;
+  }
+}
+@media screen and (min-width: 300px) {
+  .banner-xlarge {
+    height: 600px;
+  }
+}
+@media screen and (min-width: 740px) {
+  .banner-xlarge {
+    height: 750px;
+  }
+}
+@media screen and (min-width: 980px) {
+  .banner-xlarge {
+    height: 1200px;
   }
 }
 .banner-padded {

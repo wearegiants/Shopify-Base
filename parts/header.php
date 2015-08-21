@@ -10,7 +10,13 @@
 </div>
 
 <div id="header-wrapper">
-   <header id="header" class="forehead">
+   <?php 
+      // Available Classes for #header:
+      // .forehead: adds some space above the nav.
+      // .fivehead: adds a bunch of space above the nav.
+      // .chin: adds some space below the nav.
+   ?>
+   <header id="header" class="chin">
       <div class="fs-row">
          <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-3 fs-sm-half">
             <a href="?page=collection" class="btn btn-nav btn-burg fs-md-hide fs-lg-hide">&nbsp;</a>
