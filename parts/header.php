@@ -16,20 +16,16 @@
       // .fivehead: adds a bunch of space above the nav.
       // .chin: adds some space below the nav.
    ?>
-   <header id="header" class="chin">
+   <header id="header">
       <div class="fs-row">
-         <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-3 fs-sm-half">
-            <a href="?page=collection" class="btn btn-nav btn-burg fs-md-hide fs-lg-hide">&nbsp;</a>
+         <nav id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
+            <a href="#" class="btn btn-nav"><span class="btn-burg"></span> Menu</a>
+         </nav>
+         <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
             <a href="/" class="btn btn-nav btn-logo">NOON GOONS</a>
          </nav>
-         <nav id="header--nav" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
-            <a href="?page=collection" class="btn btn-nav">Shop</a>
-            <a href="?page=collection" class="btn btn-nav">Stockists</a>
-            <a href="#" class="btn btn-nav fs-sm-hide">Account</a>
-         </nav>
-         <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-1 fs-sm-half text-right">
-            <a href="?page=cart" class="btn btn-nav btn-last"><span class="fs-sm-hide">Cart</span> 0</a>
-            <!--<a href="#" class="btn btn-nav ss-gizmo ss-search fs-sm-hide"></a>-->
+         <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-1 text-right">
+            <a href="?page=search" class="btn btn-nav">Search</a>
          </nav>
       </div>
    </header>
