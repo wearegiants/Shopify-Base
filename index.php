@@ -6,7 +6,7 @@
 <!--[if (gte IE 9)|!(IE)]><!--><html lang="en" ng-app="myapp"> <!--<![endif]-->
 <head>
 <meta charset="utf-8">
-<title>Noon Goons</title>
+<title>Time—Line</title>
 <meta name="description" content="">
 <link rel="shortcut icon" href="assets/img/favicon.ico">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -29,7 +29,15 @@
 
 </head>
 
-<body class="fs-grid">
+<?php
+	if (isset($_GET['page'])) {
+    $page = $_GET['page'];
+  } else {
+    $page = 'index';
+  }
+ ?>
+
+<body class="fs-grid page-<?php echo $page; ?>">
 
 <div id="wrapper">
 <?php include('parts/header.php') ?>

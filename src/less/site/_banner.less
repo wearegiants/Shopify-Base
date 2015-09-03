@@ -1,9 +1,17 @@
 .banner {
 
-   background: #000;
    position: relative;
    color: @white;
    hypens: none;
+
+   &.inverse {
+      color: @black;
+   }
+
+   h1,h2,h3,h4,h5,h6 {
+      font-weight: 500;
+      margin: 0;
+   }
 
    @media @min {
       height: 250px;

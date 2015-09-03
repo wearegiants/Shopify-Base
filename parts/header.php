@@ -2,7 +2,16 @@
    <div class="centered centered-full">
       <div class="fs-row">
          <div class="fs-cell fs-all-full">
-            Sign up now for free shipping.
+            <a href="/">Home</a>
+            <a href="?page=collection">Collection</a>
+            <a href="?page=category">Skinnies</a>
+            <a href="?page=product">Natural Blonde</a>
+            <a href="?page=about">About</a>
+            <a href="?page=commercial">Commercial</a>
+            <a href="?page=contact">Contact</a>
+            <a href="?page=glossary">Glossary</a>
+            <a href="?page=blog">Blog</a>
+            <a href="?page=blog">Blog Single</a>
             <a href="#" class="fl-right close-alert" title="close"><span class="ss-gizmo ss-plus rotate-45"></span></a>
          </div>
       </div>
@@ -19,10 +28,10 @@
    <header id="header">
       <div class="fs-row">
          <nav id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
-            <a href="#" class="btn btn-nav"><span class="btn-burg"></span> Menu</a>
+            <a href="#" class="btn btn-nav"><!--<span class="btn-burg"></span>--> Menu</a>
          </nav>
          <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
-            <a href="/" class="btn btn-nav btn-logo">NOON GOONS</a>
+            <a href="/" class="btn btn-nav btn-logo">Time Line</a>
          </nav>
          <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-1 text-right">
             <a href="?page=search" class="btn btn-nav">Search</a>

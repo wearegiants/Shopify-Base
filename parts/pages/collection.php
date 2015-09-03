@@ -1,54 +1,40 @@
-<div class="fs-row">
-   <nav class="breadcrumbs fs-cell fs-full-all">
-      <span class="fs-lg-push-6">
-         <a class="btn btn-nav btn-sm" href="#">All</a>
-         <a class="btn btn-nav btn-sm" href="#">Spring 15</a>
-         <a class="btn btn-nav btn-sm" href="#">Spring 16</a>
-         <a class="btn btn-nav btn-sm" href="#">Winter 15</a>
-      </span>
-   </nav>
-</div>
-
-<div class="collection--sort fs-row">
-   <div class="fs-cell fs-full-all sort">
-      <label class="btn btn-nav btn-sm">Sort by:</label>
-      <select class="btn btn-nav btn-sm">
-         <option>Newest</option>
-         <option>Featured</option>
-         <option>Best Selling</option>
-      </select>
-      <span class="fl-right">
-         <button class="btn btn-sm">Grid</button>
-         <button class="btn btn-sm btn-disabled btn-last">List</button>
-      </span>
+<section class="section bg-color-bgGray">
+   <div class="fs-row">
+      <div class="fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center"><a href="?page=category"><img class="rounded img-responsive" src="http://placehold.it/135x135/ffffff/eeeeee"><br>Skinnies</a></div>
+      <div class="fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center"><a href="?page=category"><img class="rounded img-responsive" src="http://placehold.it/135x135/ffffff/eeeeee"><br>Color Series</a></div>
+      <div class="fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center"><a href="?page=category"><img class="rounded img-responsive" src="http://placehold.it/135x135/ffffff/eeeeee"><br>Shelving</a></div>
+      <div class="fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center"><a href="?page=category"><img class="rounded img-responsive" src="http://placehold.it/135x135/ffffff/eeeeee"><br>Barn Doors</a></div>
    </div>
-</div>
-
-<div class="collection--baner banner wallpaper" data-background-options='{"source":"/assets/collection-bg.jpg"}' style="display:none">
-   <div class="centered centered-full">
-      <div class="fs-row">
-         <div class="fs-cell fs-full-all">
-            <h1 class="collection--feature_title light">Spring 2015</h1>
-         </div>
+</section>
+<section class="section bg-color-white">
+   <div class="fs-row">
+      <div class="fs-cell fs-lg-8 fs-md-4 fs-sm-3">
+         <h2>Skinnies</h2>
+         <p class="emphasized">Ore il im doluptatis ma exernamus minctusam as estium ilibusc iendam rem coreperum re, lorem ipsim dolor con rerum qui sunt.</p>
       </div>
    </div>
-</div>
-
-<div id="product-grid" class="spaced text-center">
-<div class="fs-row">
-   <?php $productWidth = 'fs-cell fs-lg-4 fs-md-half fs-sm-full'; ?>
-   <?php $featureWidth = 'fs-cell fs-lg-8 fs-md-6 fs-sm-full'; ?>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-   <div class="product--grid-cell <?php echo $productWidth; ?>"><?php include ('parts/product--grid-item.php' ); ?></div>
-</div>
-</div>
+</section>
+<section class="section bg-color-bgGray">
+   <div class="fs-row">
+      <div class="fs-cell fs-lg-8 fs-md-4 fs-sm-3">
+         <h2>Color Series</h2>
+         <p class="emphasized">Ore il im doluptatis ma exernamus minctusam as estium ilibusc iendam rem coreperum re, lorem ipsim dolor con rerum qui sunt.</p>
+      </div>
+   </div>
+</section>
+<section class="section bg-color-white">
+   <div class="fs-row">
+      <div class="fs-cell fs-lg-8 fs-md-4 fs-sm-3">
+         <h2>Shelving</h2>
+         <p class="emphasized">Ore il im doluptatis ma exernamus minctusam as estium ilibusc iendam rem coreperum re, lorem ipsim dolor con rerum qui sunt.</p>
+      </div>
+   </div>
+</section>
+<section class="section bg-color-bgGray">
+   <div class="fs-row">
+      <div class="fs-cell fs-lg-8 fs-md-4 fs-sm-3">
+         <h2>Barn Doors</h2>
+         <p class="emphasized">Ore il im doluptatis ma exernamus minctusam as estium ilibusc iendam rem coreperum re, lorem ipsim dolor con rerum qui sunt.</p>
+      </div>
+   </div>
+</section>

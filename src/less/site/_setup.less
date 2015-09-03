@@ -12,7 +12,7 @@
 
 @textGray:    #666666;
 @bgGray:      #F2F2F2;
-@lighterGray: #E7E7EC;
+@lighterGray: #E6E5E6;
 @lightGray:   #CBCBD2;
 @gray:        #999999;
 
@@ -50,11 +50,14 @@
 
 @spaced:      25px;
 
-.bg {
-  &.green {
+.bg-color {
+  &-green {
     background: @green;
   }
-  &.lightgray {
+  &-gray {
+    background: @lighterGray;
+  }
+  &-lightgray, &-bgGray {
     background: @bgGray;
   }
 }
@@ -122,6 +125,7 @@
   display: block;
   max-width: 100%;
   height: auto;
+  margin: auto;
 }
 
 .red {

@@ -11,7 +11,7 @@
       </div>
 
       <div id="footer--copyright" class="fs-cell fs-xl-3 fs-lg-3 fs-md-3 fs-sm-half">
-         <span class="btn btn-nav">Noon Goons 2015</span>
+         <span class="btn btn-nav">Time Line 2015</span>
       </div>
 
       <div id="footer--social" class="fs-cell fs-xl-3 fs-lg-3 fs-md-3 fs-sm-half text-right">
