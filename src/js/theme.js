@@ -9,5 +9,6 @@ $(document).ready(function(){
 	$(".cart-item").equalize({
 		target: ".cart-item-cell"
 	});
+	$(".swap").swap();
 
 });

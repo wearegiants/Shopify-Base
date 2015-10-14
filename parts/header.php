@@ -1,4 +1,4 @@
-<div class="alert alert-notice alert-active">
+<div class="alert alert-notice alert-active hidden">
    <div class="centered centered-full">
       <div class="fs-row">
          <div class="fs-cell fs-all-full">
@@ -25,10 +25,10 @@
       // .fivehead: adds a bunch of space above the nav.
       // .chin: adds some space below the nav.
    ?>
-   <header id="header">
+   <header id="header" class="menu-swap">
       <div class="fs-row">
          <nav id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
-            <a href="#" class="btn btn-nav"><!--<span class="btn-burg"></span>--> Menu</a>
+            <a href="#" class="btn btn-nav btn-hamburg swap" data-swap-target=".menu-swap">Menu</a>
          </nav>
          <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
             <a href="/" class="btn btn-nav btn-logo">Time Line</a>
@@ -49,4 +49,16 @@
          </nav>
       </div>
    </header>
+   <div id="header--active" class="bg-color-lightPink menu-swap">
+      <div class="fs-row">
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Products</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Where to Buy</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Stories</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">FAQ</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Commercial</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">About Us</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Press Room</a>
+         <a class="btn btn-nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Contact</a>
+      </div>
+   </div>
 </div>

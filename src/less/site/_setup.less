@@ -10,21 +10,26 @@
 
 // Colors
 
+@black:       #1B1B1C;
+@white:       #fff;
+
 @textGray:    #666666;
 @bgGray:      #F2F2F2;
 @lighterGray: #E6E5E6;
-@lightGray:   #CBCBD2;
-@gray:        #999999;
+@lightGray:   #E6E7E8;
+@gray:        #C9CEC9;
+@warmGray:    #C9CEC9;
+@darkGray:    #939597;
 
-@yellow:      RGBA(254, 220, 56, 1);
-@green:       RGBA(84, 183, 78, 1);
-@darkgreen:   RGBA(93, 157, 72, 1);
-@blue:        RGBA(41, 165, 220, 1);
-@brown:       RGBA(157, 104, 46, 1);
-
-@rb-red:      #cc1c4a;
-@rb-yellow:   #9E6927;
-@rb-blue:     #facd34;
+@brightRed:   #FF2816;
+@softRed:     #ED7161;
+@lightPink:   #FDE9E3;
+@yellow:      #FCEF55;
+@brightBlue:  #005CA9;
+@blue:        #005CA9;
+@softBlue:    #6A8CC3;
+@softGreen:   #73C48B;
+@green:       #73C48B;
 
 @success:     #74C080;
 @warning:     #FA9F47;
@@ -45,20 +50,20 @@
 @white50:     rgba(255, 255, 255, 0.5);
 @white75:     rgba(255, 255, 255, 0.75);
 
-@black:       #333;
-@white:       #fff;
-
 @spaced:      25px;
 
 .bg-color {
   &-green {
-    background: @green;
+    background-color: @green;
   }
   &-gray {
-    background: @lighterGray;
+    background-color: @lighterGray;
   }
   &-lightgray, &-bgGray {
-    background: @bgGray;
+    background-color: @bgGray;
+  }
+  &-lightPink {
+    background-color: @lightPink
   }
 }
 
