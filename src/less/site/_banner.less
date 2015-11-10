@@ -114,10 +114,17 @@
       .font_size(20);
    }
 
-   &--centered {
+   &_centered {
       .center();
       width: 100%;
       z-index: 5;
+   }
+
+   &--overlay {
+      z-index: 4;
+      .cover();
+      background: @black25;
+      //mix-blend-mode: multiply;
    }
 
    &--bg {

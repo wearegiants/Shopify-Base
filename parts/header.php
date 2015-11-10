@@ -25,7 +25,6 @@
             <a href="?page=collection" class="btn btn--nav btn-close ss-gizmo ss-plus rotate-45"></a>
             <a href="?page=collection" class="btn btn--nav">Shop</a>
             <a href="?page=collection" class="btn btn--nav">Stockists</a>
-            <a href="#" class="btn btn-nav">Account</a>
          </nav>
       </div>
    </header>
