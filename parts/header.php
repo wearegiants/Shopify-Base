@@ -34,10 +34,6 @@
          <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Where to Buy</a>
          <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Stories</a>
          <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">FAQ</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Commercial</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">About Us</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Press Room</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Contact</a>
       </div>
    </div>
 </div>
