@@ -7,15 +7,15 @@
    ?>
    <header id="header" class="menu-swap">
       <div class="fs-row">
-         <nav id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
+         <menu id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
             <a href="#" class="btn btn--nav btn-hamburg swap" data-swap-target=".menu-swap">Menu</a>
-         </nav>
-         <nav id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
-            <a href="/" class="btn btn--nav btn-logo">Time Line</a>
-         </nav>
-         <nav id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-1 text-right">
+         </menu>
+         <menu id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
+            <a href="/" class="btn btn--nav btn-logo"><?php echo $siteName; ?></a>
+         </menu>
+         <menu id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-1 text-right">
             <a href="?page=search" class="btn btn--nav">Search</a>
-         </nav>
+         </menu>
       </div>
    </header>
    <?php // Need to figure out how to append this with jQuery rather than by this method ?>
