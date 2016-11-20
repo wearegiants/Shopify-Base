@@ -5,15 +5,24 @@
 <div class="header header--md">&nbsp;</div>
 
 <div class="fs-row">
-	<div class="fs-cell fs-xl-9 fs-lg-8 fs-md-full fs-sm-3">
+	<div class="fs-cell fs-xl-8 fs-lg-8 fs-md-full fs-sm-3">
 		<div class="product-image-wrapper">
-			<div class="product-image wrapper bg--bgGray"><img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive first" alt="Rxmance Tee"></div>
-			<div class="product-image wrapper bg--bgGray"><img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive first" alt="Rxmance Tee"></div>
-			<div class="product-image wrapper bg--bgGray"><img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive first" alt="Rxmance Tee"></div>
+			<div class="product-image relative bg--bgGray">
+				<figure class="zoo-item" data-zoo-scale="2" data-zoo-image="http://i.imgur.com/6GUd9k7.png"></figure>
+				<img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive">
+			</div>
+			<div class="product-image relative bg--bgGray">
+				<figure class="zoo-item" data-zoo-scale="2" data-zoo-image="http://i.imgur.com/6GUd9k7.png"></figure>
+				<img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive">
+			</div>
+			<div class="product-image relative bg--bgGray">
+				<figure class="zoo-item" data-zoo-scale="2" data-zoo-image="http://i.imgur.com/6GUd9k7.png"></figure>
+				<img src="http://i.imgur.com/6GUd9k7.png" class="img-responsive">
+			</div>
 		</div>
 	</div>
 	<hr class="fs-cell fs-lg-hide fs-md-full fs-sm-3 invisible">
-	<div class="fs-cell fs-xl-3 fs-lg-4 fs-md-full fs-sm-3">
+	<div class="fs-cell fs-xl-4 fs-lg-4 fs-md-full fs-sm-3">
 		<div class="product-info">
 			<h1 class="product-title">A.R.M. Wrestling</h1>
 			<span class="product-price">$50.00 USD</span>

@@ -2281,24 +2281,6 @@
 		"oO": 0,
 		"oS": 1
 		},
-	"\/src\/bower_components\/headroom.js\/Headroom.js": {
-		"ft": 64,
-		"mi": 1,
-		"oA": 1,
-		"oAP": "\/src\/bower_components\/headroom.js\/Headroom.js",
-		"oF": 0,
-		"sC": 1,
-		"tS": 0
-		},
-	"\/src\/bower_components\/headroom.js\/jQuery.headroom.js": {
-		"ft": 64,
-		"mi": 1,
-		"oA": 1,
-		"oAP": "\/src\/bower_components\/headroom.js\/jQuery.headroom.js",
-		"oF": 0,
-		"sC": 1,
-		"tS": 0
-		},
 	"\/src\/bower_components\/headroom.js\/LICENSE": {
 		"ft": 8192,
 		"oA": 2,
@@ -8807,6 +8789,127 @@
 		"rFN": 0,
 		"uCM": 0
 		},
+	"\/src\/bower_components\/zoomove\/.bower.json": {
+		"ft": 524288,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/.bower.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/src\/bower_components\/zoomove\/.jshintrc": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/.jshintrc",
+		"oF": 0
+		},
+	"\/src\/bower_components\/zoomove\/bower.json": {
+		"ft": 524288,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/bower.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/src\/bower_components\/zoomove\/CONTRIBUTING.md": {
+		"cS": 0,
+		"eF": 0,
+		"eL": 1,
+		"eLB": 0,
+		"ema": 1,
+		"eSQ": 1,
+		"ft": 4096,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/CONTRIBUTING.md",
+		"oF": 0,
+		"oFM": 0,
+		"oS": 0,
+		"pHT": 0,
+		"pME": 1,
+		"rFN": 0,
+		"uCM": 0
+		},
+	"\/src\/bower_components\/zoomove\/demo\/index.html": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/demo\/index.html",
+		"oF": 0
+		},
+	"\/src\/bower_components\/zoomove\/demo\/logo_zoomove.svg": {
+		"ft": 2097152,
+		"miP": 0,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/demo\/logo_zoomove.svg",
+		"oF": 0,
+		"opt": 0,
+		"plM": 3758088159,
+		"prP": 0
+		},
+	"\/src\/bower_components\/zoomove\/demo\/style.css": {
+		"aP": 0,
+		"bl": 0,
+		"ft": 16,
+		"ma": 0,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/demo\/style.css",
+		"oF": 0,
+		"oS": 0
+		},
+	"\/src\/bower_components\/zoomove\/dist\/zoomove.min.css": {
+		"aP": 0,
+		"bl": 0,
+		"ft": 16,
+		"ma": 0,
+		"oA": 1,
+		"oAP": "\/src\/bower_components\/zoomove\/dist\/zoomove.min.css",
+		"oF": 0,
+		"oS": 0
+		},
+	"\/src\/bower_components\/zoomove\/dist\/zoomove.min.js": {
+		"ft": 64,
+		"mi": 1,
+		"oA": 1,
+		"oAP": "\/src\/bower_components\/zoomove\/dist\/zoomove.min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/src\/bower_components\/zoomove\/LICENSE.md": {
+		"cS": 0,
+		"eF": 0,
+		"eL": 1,
+		"eLB": 0,
+		"ema": 1,
+		"eSQ": 1,
+		"ft": 4096,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/LICENSE.md",
+		"oF": 0,
+		"oFM": 0,
+		"oS": 0,
+		"pHT": 0,
+		"pME": 1,
+		"rFN": 0,
+		"uCM": 0
+		},
+	"\/src\/bower_components\/zoomove\/README.md": {
+		"cS": 0,
+		"eF": 0,
+		"eL": 1,
+		"eLB": 0,
+		"ema": 1,
+		"eSQ": 1,
+		"ft": 4096,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/zoomove\/README.md",
+		"oF": 0,
+		"oFM": 0,
+		"oS": 0,
+		"pHT": 0,
+		"pME": 1,
+		"rFN": 0,
+		"uCM": 0
+		},
 	"\/src\/css\/shopify.css": {
 		"aP": 0,
 		"bl": 0,
@@ -8816,6 +8919,24 @@
 		"oAP": "\/src\/css\/shopify-min.css",
 		"oF": 0,
 		"oS": 0
+		},
+	"\/src\/js\/Headroom.js": {
+		"ft": 64,
+		"mi": 1,
+		"oA": 1,
+		"oAP": "\/src\/js\/min\/Headroom-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/src\/js\/jQuery.headroom.js": {
+		"ft": 64,
+		"mi": 1,
+		"oA": 1,
+		"oAP": "\/src\/js\/min\/jQuery.headroom-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
 		},
 	"\/src\/js\/main.js": {
 		"ft": 64,
@@ -8938,6 +9059,16 @@
 		"ma": 0,
 		"oA": 2,
 		"oAP": "\/src\/less\/css\/ss-glyphish-outlined-min.css",
+		"oF": 0,
+		"oS": 0
+		},
+	"\/src\/less\/css\/ss-social-circle.css": {
+		"aP": 0,
+		"bl": 0,
+		"ft": 16,
+		"ma": 0,
+		"oA": 2,
+		"oAP": "\/src\/less\/css\/ss-social-circle-min.css",
 		"oF": 0,
 		"oS": 0
 		},

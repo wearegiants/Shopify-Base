@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "normalize-css": "^5.0.0",
-    "ScrollToFixed": "jquery-scrolltofixed#^1.0.8"
+    "ScrollToFixed": "jquery-scrolltofixed#^1.0.8",
+    "zoomove": "^1.2.0"
   }
 }

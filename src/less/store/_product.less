@@ -1,6 +1,23 @@
 .product {
 	&-image {
 		margin-bottom: @spaced;
+		.zoo-item {
+			//visibility: hidden;
+			top: 0;
+			left: 0;
+			z-index: 99;
+		}
+		.img-responsive {
+			visibility: hidden;
+		}
+		&:hover {
+			.zoo-item {
+				//visibility: visible;
+			}
+			.img-responsive {
+				opacity: 0;
+			}
+		}
 	}
 	&-add {
 		.add-to-cart {

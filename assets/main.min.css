@@ -1135,6 +1135,17 @@ input[type=button] {
 .product-image {
   margin-bottom: 25px;
 }
+.product-image .zoo-item {
+  top: 0;
+  left: 0;
+  z-index: 99;
+}
+.product-image .img-responsive {
+  visibility: hidden;
+}
+.product-image:hover .img-responsive {
+  opacity: 0;
+}
 .product-add .add-to-cart {
   margin-bottom: 0;
 }
@@ -4968,6 +4979,34 @@ img.mfp-img {
   right: 0;
   padding-top: 0;
 }
+/*!
+ * ZooMove v1.2.0
+ * http://thompsonemerson.github.io/zoomove
+ *
+ * Copyright (c) 2016, Emerson Thompson
+ * Licensed http://thompsonemerson.mit-license.org
+*/
+.zoo-item {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transition: all 150ms linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zoo-item .zoo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  transition: transform 0.5s ease-out;
+}
 /*
 * Symbolset
 * www.symbolset.com
@@ -4977,13 +5016,6 @@ img.mfp-img {
 * and place this within your <head> tags.
 * <link href="webfonts/ss-social.css" rel="stylesheet" />
 */
-@font-face {
-  font-family: "SSSocial";
-  src: url('/assets/ss-social-circle.eot');
-  src: url('/assets/ss-social-circle-.eot#iefix') format('embedded-opentype'), url('/assets/ss-social-circle.woff') format('woff'), url('/assets/ss-social-circle.ttf') format('truetype'), url('/assets/ss-social-circle.svg#SSSocialCircle') format('svg');
-  font-weight: bold;
-  font-style: normal;
-}
 @font-face {
   font-family: "SSSocial";
   src: url('/assets/ss-social-regular.eot');
