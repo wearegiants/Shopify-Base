@@ -1,4 +1,15 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -86,7 +97,7 @@
 		if (!data.always) {
 			// Unbind events, clear timers, similiar to .one()
 
-			data.$el[Plugin.namespace]("destroy"); // clean up old data?
+			data.$el[Plugin.namespaceClean]("destroy"); // clean up old data?
 		}
 
 		// fire callback
@@ -168,7 +179,12 @@
 		}
 
 		for (var i in a) {
-			if ( !(a.hasOwnProperty(i) && b.hasOwnProperty(i) && a[i] === b[i]) ) {
+
+			if (a.hasOwnProperty(i)) {
+				if ( !(a.hasOwnProperty(i) && b.hasOwnProperty(i) && a[i] === b[i]) ) {
+					return false;
+				}
+			} else {
 				return false;
 			}
 		}
@@ -181,6 +197,8 @@
 	 * @name Transition
 	 * @description A jQuery plugin for CSS transition events.
 	 * @type widget
+	 * @main transition.js
+	 * @dependency jQuery
 	 * @dependency core.js
 	 */
 
@@ -214,4 +232,6 @@
 
 		Window       = Formstone.window;
 
-})(jQuery, Formstone);
+})
+
+);

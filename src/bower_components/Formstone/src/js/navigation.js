@@ -1,4 +1,17 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./mediaquery",
+			"./swap"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -9,6 +22,7 @@
 	 */
 
 	function setup() {
+		// $Body  = Formstone.$body;
 		$Locks = $("html, body");
 	}
 
@@ -21,14 +35,10 @@
 
 	function construct(data) {
 		// guid
-		data.guid         = "__" + (GUID++);
-		data.eventGuid    = Events.namespace + data.guid;
-		data.rawGuid      = RawClasses.base + data.guid;
-		data.classGuid    = "." + data.rawGuid;
-
 		data.handleGuid   = RawClasses.handle + data.guid;
 
 		data.isToggle     = (data.type === "toggle");
+		data.open         = false;
 
 		if (data.isToggle) {
 			data.gravity  = "";
@@ -37,7 +47,7 @@
 		var baseClass     = RawClasses.base,
 			typeClass     = [baseClass, data.type].join("-"),
 			gravityClass  = data.gravity ? [typeClass, data.gravity].join("-") : "",
-			classGroup    = [data.rawGuid, data.customClass].join(" ");
+			classGroup    = [data.rawGuid, data.theme, data.customClass].join(" ");
 
 		data.handle       = this.data(Namespace + "-handle");
 		data.content      = this.data(Namespace + "-content");
@@ -50,42 +60,63 @@
 			classGroup
 		].join(" ");
 
-		data.navClasses = [
+		data.thisClasses = [
 			RawClasses.nav.replace(baseClass, typeClass),
 			gravityClass ? RawClasses.nav.replace(baseClass, gravityClass) : "",
 			classGroup
-		].join(" ");
+		];
 
 		data.contentClasses = [
 			RawClasses.content.replace(baseClass, typeClass),
-			gravityClass ? RawClasses.content.replace(baseClass, gravityClass) : "",
 			classGroup
+		].join(" ");
+
+		data.contentClassesOpen = [
+			gravityClass ? RawClasses.content.replace(baseClass, gravityClass) : "",
+			RawClasses.open
 		].join(" ");
 
 		// DOM
 
-		data.$nav        = this.addClass(data.navClasses);
+		data.$nav        = this.addClass(data.thisClasses.join(" ")).attr("role", "navigation");
 		data.$handle     = $(data.handle).addClass(data.handleClasses);
 		data.$content    = $(data.content).addClass(data.contentClasses);
 		data.$animate    = $().add(data.$nav).add(data.$content);
 
-		if (data.label) {
-			data.originalLabel = data.$handle.text();
+		cacheLabel(data);
+
+		// Tab index
+
+		data.navTabIndex = data.$nav.attr("tabindex");
+		data.$nav.attr("tabindex", -1);
+
+		// Aria
+
+		data.id = this.attr("id");
+
+		if (data.id) {
+			data.ariaId = data.id;
+		} else {
+			data.ariaId = data.rawGuid;
+			this.attr("id", data.ariaId);
 		}
 
 		// toggle
 
-		data.$handle.attr("data-swap-target", data.classGuid)
-					.attr("data-swap-linked", "." + data.handleGuid)
+		data.$handle.attr("data-swap-target", data.dotGuid)
+					.attr("data-swap-linked", data.handleGuid)
 					.attr("data-swap-group", RawClasses.base)
-					.on("activate.swap" + data.eventGuid, data, onOpen)
-					.on("deactivate.swap" + data.eventGuid, data, onClose)
-					.on("enable.swap" + data.eventGuid, data, onEnable)
-					.on("disable.swap" + data.eventGuid, data, onDisable)
-					.swap({
+					.attr("tabindex", 0)
+					.on("activate.swap" + data.dotGuid, data, onOpen)
+					.on("deactivate.swap" + data.dotGuid, data, onClose)
+					.on("enable.swap" + data.dotGuid, data, onEnable)
+					.on("disable.swap" + data.dotGuid, data, onDisable)
+					.on(Events.focus + data.dotGuid, data, onFocus)
+					.on(Events.blur + data.dotGuid, data, onBlur)
+					.fsSwap({
 						maxWidth: data.maxWidth,
 						classes: {
-							target  : data.classGuid,
+							target  : data.dotGuid,
 							enabled : Classes.enabled,
 							active  : Classes.open,
 							raw: {
@@ -95,6 +126,12 @@
 							}
 						}
 					});
+
+		if (!data.$handle.is("a, button")) {
+			data.$handle.on(Events.keyPress + data.dotGuid, data, onKeyup);
+		}
+
+		// $Body.on( [ Events.focus + data.dotGuid, Events.focusIn + data.dotGuid ].join(" "), data, onDocumentFocus);
 	}
 
 	/**
@@ -105,22 +142,37 @@
 	 */
 
 	function destruct(data) {
-		data.$content.removeClass(data.contentClasses)
+		data.$content.removeClass( [data.contentClasses, data.contentClassesOpen].join(" ") )
 					 .off(Events.namespace);
 
-		data.$handle.removeAttr("data-swap-target")
+		data.$handle.removeAttr("aria-controls")
+					.removeAttr("aria-expanded")
+					.removeAttr("data-swap-target")
 					.removeData("swap-target")
 					.removeAttr("data-swap-linked")
+					.removeAttr("data-swap-group")
 					.removeData("swap-linked")
+					.removeData("tabindex")
 					.removeClass(data.handleClasses)
-					.off(data.eventGuid)
-					.text(data.originalLabel)
-					.swap("destroy");
+					.off(data.dotGuid)
+					.html(data.originalLabel)
+					.fsSwap("destroy");
+
+		data.$nav.attr("tabindex", data.navTabIndex);
+
+		// $Body.off(data.dotGuid);
+
+		restoreLabel(data);
 
 		clearLocks(data);
 
-		this.removeClass(data.navClasses)
+		this.removeAttr("aria-hidden")
+			.removeClass(data.thisClasses.join(" "))
 			.off(Events.namespace);
+
+		if (this.attr("id") === data.rawGuid) {
+			this.removeAttr("id");
+		}
 	}
 
 	/**
@@ -131,7 +183,7 @@
 	 */
 
 	function open(data) {
-		data.$handle.swap("activate");
+		data.$handle.fsSwap("activate");
 	}
 
 	/**
@@ -142,7 +194,7 @@
 	 */
 
 	function close(data) {
-		data.$handle.swap("deactivate");
+		data.$handle.fsSwap("deactivate");
 	}
 
 	/**
@@ -153,7 +205,7 @@
 	 */
 
 	function enable(data) {
-		data.$handle.swap("enable");
+		data.$handle.fsSwap("enable");
 	}
 
 	/**
@@ -164,7 +216,47 @@
 	 */
 
 	function disable(data) {
-		data.$handle.swap("disable");
+		data.$handle.fsSwap("disable");
+	}
+
+	/**
+	 * @method private
+	 * @name onFocus
+	 * @description Handles instance focus
+	 * @param e [object] "Event data"
+	 */
+
+	function onFocus(e) {
+		e.data.$handle.addClass(RawClasses.focus);
+	}
+
+	/**
+	 * @method private
+	 * @name onBlur
+	 * @description Handles instance blur
+	 * @param e [object] "Event data"
+	 */
+
+	function onBlur(e) {
+		e.data.$handle.removeClass(RawClasses.focus);
+	}
+
+	/**
+	 * @method private
+	 * @name onKeyup
+	 * @description Handles keypress event on inputs
+	 * @param e [object] "Event data"
+	 */
+
+	function onKeyup(e) {
+		var data = e.data;
+
+		// If arrow keys
+		if (e.keyCode === 13 || e.keyCode === 32) {
+			Functions.killEvent(e);
+
+			data.$handle.trigger(Events.raw.click);
+		}
 	}
 
 	/**
@@ -178,18 +270,27 @@
 		if (!e.originalEvent) { // thanks IE :/
 			var data = e.data;
 
-			data.$el.trigger(Events.open);
+			if (!data.open) {
+				data.$el.trigger(Events.open)
+						.attr("aria-hidden", false);
 
-			data.$content.addClass(RawClasses.open)
-						 .one(Events.clickTouchStart, function() {
-							close(data);
-						 });
+				data.$content.addClass(data.contentClassesOpen)
+							 .one(Events.click, function() {
+								close(data);
+							 });
 
-			if (data.label) {
-				data.$handle.text(data.labels.open);
+				data.$handle.attr("aria-expanded", true);
+
+				if (data.label) {
+					data.$handle.html(data.labels.open);
+				}
+
+				addLocks(data);
+
+				data.open = true;
+
+				data.$nav.focus();
 			}
-
-			addLocks(data);
 		}
 	}
 
@@ -204,16 +305,25 @@
 		if (!e.originalEvent) { // thanks IE :/
 			var data = e.data;
 
-			data.$el.trigger(Events.close);
+			if (data.open) {
+				data.$el.trigger(Events.close)
+						.attr("aria-hidden", true);
 
-			data.$content.removeClass(RawClasses.open)
-						 .off(Events.namespace);
+				data.$content.removeClass(data.contentClassesOpen)
+							 .off(Events.namespace);
 
-			if (data.label) {
-				data.$handle.text(data.labels.closed);
+				data.$handle.attr("aria-expanded", false);
+
+				if (data.label) {
+					data.$handle.html(data.labels.closed);
+				}
+
+				clearLocks(data);
+
+				data.open = false;
+
+				data.$el.focus();
 			}
-
-			clearLocks(data);
 		}
 	}
 
@@ -227,6 +337,9 @@
 	function onEnable(e) {
 		var data = e.data;
 
+		data.$el.attr("aria-hidden", true);
+		data.$handle.attr("aria-controls", data.ariaId)
+					.attr("aria-expanded", false);
 		data.$content.addClass(RawClasses.enabled);
 
 		setTimeout(function() {
@@ -234,7 +347,7 @@
 		}, 0);
 
 		if (data.label) {
-			data.$handle.text(data.labels.closed);
+			data.$handle.html(data.labels.closed);
 		}
 	}
 
@@ -248,12 +361,13 @@
 	function onDisable(e) {
 		var data = e.data;
 
+		data.$el.removeAttr("aria-hidden");
+		data.$handle.removeAttr("aria-controls")
+					.removeAttr("aria-expanded");
 		data.$content.removeClass(RawClasses.enabled, RawClasses.animated);
 		data.$animate.removeClass(RawClasses.animated);
 
-		if (data.label) {
-			data.$handle.text(data.originalLabel);
-		}
+		restoreLabel(data);
 
 		clearLocks(data);
 	}
@@ -285,14 +399,74 @@
 	}
 
 	/**
+	 * @method private
+	 * @name cacheLabel
+	 * @description Sets handle labels
+	 * @param data [object] "Instance data"
+	 */
+
+	function cacheLabel(data) {
+		if (data.label) {
+			if (data.$handle.length > 1) {
+				data.originalLabel = [];
+
+				for (var i = 0, count = data.$handle.length; i < count; i++) {
+					data.originalLabel[i] = data.$handle.eq(i).html();
+				}
+			} else {
+				data.originalLabel = data.$handle.html();
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name restoreLabel
+	 * @description restores handle labels
+	 * @param data [object] "Instance data"
+	 */
+
+	function restoreLabel(data) {
+		if (data.label) {
+			if (data.$handle.length > 1) {
+				for (var i = 0, count = data.$handle.length; i < count; i++) {
+					data.$handle.eq(i).html(data.originalLabel[i]);
+				}
+			} else {
+				data.$handle.html(data.originalLabel);
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name onDocumentFocus
+	 * @description Handles document focus
+	 * @param e [object] "Event data"
+	 */
+
+	// function onDocumentFocus(e) {
+	// 	var target = e.target,
+	// 		data   = e.data;
+	//
+	// 	if (data.open && !$.contains(data.$nav, target) && target !== data.$nav[0] && target !== data.$handle[0]) {
+	// 		Functions.killEvent(e);
+	//
+	// 		data.$nav.focus();
+	// 	}
+	// }
+
+	/**
 	 * @plugin
 	 * @name Navigation
 	 * @description A jQuery plugin for simple responsive navigation.
 	 * @type widget
+	 * @main navigation.js
+	 * @main navigation.css
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency mediaquery.js
 	 * @dependency swap.js
-	 * @dependency touch.js
 	 */
 
 	var Plugin = Formstone.Plugin("navigation", {
@@ -306,6 +480,7 @@
 			 * @param labels.closed [string] <'Menu'> "Closed state text"
 			 * @param labels.open [string] <'Close'> "Open state text"
 			 * @param maxWidth [string] <'980px'> "Width at which to auto-disable plugin"
+			 * @param theme [string] <"fs-light"> "Theme class name"
 			 * @param type [string] <'toggle'> "Type of navigation; 'toggle', 'push', 'reveal', 'overlay'"
 			 */
 
@@ -318,6 +493,7 @@
 					open       : "Close"
 				},
 				maxWidth       : "980px",
+				theme          : "fs-light",
 				type           : "toggle"
 			},
 
@@ -327,6 +503,7 @@
 				"content",
 				"animated",
 				"enabled",
+				"focus",
 				"open",
 				"toggle",
 				"push",
@@ -344,7 +521,6 @@
 			 */
 
 			events: {
-				tap      : "tap",
 				open     : "open",
 				close    : "close"
 			},
@@ -370,10 +546,12 @@
 		RawClasses    = Classes.raw,
 		Events        = Plugin.events,
 		Functions     = Plugin.functions,
+		// $Body         = null,
 
 		// Internal
 
-		GUID          = 0,
 		$Locks        = null;
 
-})(jQuery, Formstone);
+})
+
+);

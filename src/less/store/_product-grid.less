@@ -1,0 +1,31 @@
+.product-grid__item {
+
+	margin-bottom: 				@spaced*2;
+
+	&-thumb {
+		background-color: 	@bgGray;
+		margin-bottom: 			@spaced;
+		padding-top: 				@spaced*2;
+		padding-bottom: 		@spaced*2;
+	}
+
+	&-image {
+		img {
+			transition: 				500ms ease;
+		}
+		.second {
+			position: 				absolute;
+			top: 							0;
+			opacity: 					0;
+		}
+		&:hover {
+			.second {
+				opacity: 1;
+			}
+			.first {
+				opacity: 0;
+			}
+		}
+	}
+
+}

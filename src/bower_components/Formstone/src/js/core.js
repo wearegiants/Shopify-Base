@@ -4,34 +4,52 @@
  * @description Formstone Library core. Required for all plugins.
  */
 
-var Formstone = this.Formstone = (function ($, window, document, undefined) {
+/* global define */
+/* global ga */
 
-	/* global ga */
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([ "jquery" ], factory);
+	} else {
+		factory(jQuery);
+	}
+}(function($) {
 
 	"use strict";
 
 	// Namespace
 
-	var Core = function() {
+	var Win  = typeof window !== "undefined" ? window : this,
+		Doc  = Win.document,
+		Core = function() {
 			this.Version = '@version';
 			this.Plugins = {};
+
+			this.DontConflict   = false;
+			this.Conflicts      = {
+				fn: {}
+			};
 			this.ResizeHandlers = [];
+			this.RAFHandlers    = [];
 
 			// Globals
 
-			this.window               = window;
-			this.$window              = $(window);
-			this.document             = document;
-			this.$document            = $(document);
+			this.window               = Win;
+			this.$window              = $(Win);
+			this.document             = Doc;
+			this.$document            = $(Doc);
 			this.$body                = null;
 
 			this.windowWidth          = 0;
 			this.windowHeight         = 0;
+			this.fallbackWidth        = 1024;
+			this.fallbackHeight       = 768;
 			this.userAgent            = window.navigator.userAgent || window.navigator.vendor || window.opera;
 			this.isFirefox            = /Firefox/i.test(this.userAgent);
 			this.isChrome             = /Chrome/i.test(this.userAgent);
 			this.isSafari             = /Safari/i.test(this.userAgent) && !this.isChrome;
 			this.isMobile             = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test( this.userAgent );
+			this.isIEMobile           = /IEMobile/i.test(this.userAgent);
 			this.isFirefoxMobile      = (this.isFirefox && this.isMobile);
 			this.transform            = null;
 			this.transition           = null;
@@ -40,6 +58,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 				file          : !!(window.File && window.FileList && window.FileReader),
 				history       : !!(window.history && window.history.pushState && window.history.replaceState),
 				matchMedia    : !!(window.matchMedia || window.msMatchMedia),
+				pointer       : !!(window.PointerEvent),
 				raf           : !!(window.requestAnimationFrame && window.cancelAnimationFrame),
 				touch         : !!(("ontouchstart" in window) || window.DocumentTouch && document instanceof window.DocumentTouch),
 				transition    : false,
@@ -114,7 +133,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			 */
 
 			sortAsc: function(a, b) {
-				return (parseInt(b) - parseInt(a));
+				return (parseInt(a, 10) - parseInt(b, 10));
 			},
 
 			/**
@@ -127,11 +146,51 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			 */
 
 			sortDesc: function(a, b) {
-				return (parseInt(b) - parseInt(a));
-			}
+				return (parseInt(b, 10) - parseInt(a, 10));
+			},
+
+			/**
+			 * @method private
+			 * @name decodeEntities
+			 * @description Decodes HTML.
+			 * @param string [string] "String to decode"
+			 * @return Decoded string
+			 */
+
+			decodeEntities: function(string) {
+				// http://stackoverflow.com/a/1395954
+				var el = Formstone.document.createElement("textarea");
+				el.innerHTML = string;
+
+				return el.value;
+			},
+
+			/**
+			 * @method private
+			 * @name parseGetParams
+			 * @description Returns keyed object containing all GET query parameters
+			 * @param url [string] "URL to parse"
+			 * @return [object] "Keyed query params"
+			 */
+
+			parseQueryString: function(url) {
+				var params = {},
+					parts = url.slice( url.indexOf("?") + 1 ).split("&");
+
+				for (var i = 0; i < parts.length; i++) {
+					var part = parts[i].split("=");
+					params[ part[0] ] = part[1];
+				}
+
+				return params;
+		    }
 		},
 
 		Formstone = new Core(),
+
+		// Deferred ready
+
+		$Ready = $.Deferred(),
 
 		// Classes
 
@@ -144,6 +203,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 
 		Events = {
 			namespace            : ".{ns}",
+			beforeUnload         : "beforeunload.{ns}",
 			blur                 : "blur.{ns}",
 			change               : "change.{ns}",
 			click                : "click.{ns}",
@@ -171,15 +231,40 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			mouseOut             : "mouseout.{ns}",
 			mouseOver            : "mouseover.{ns}",
 			mouseUp              : "mouseup.{ns}",
+			panStart             : "panstart.{ns}",
+			pan                  : "pan.{ns}",
+			panEnd               : "panend.{ns}",
 			resize               : "resize.{ns}",
+			scaleStart           : "scalestart.{ns}",
+			scaleEnd             : "scaleend.{ns}",
+			scale                : "scale.{ns}",
 			scroll               : "scroll.{ns}",
 			select               : "select.{ns}",
+			swipe                : "swipe.{ns}",
 			touchCancel          : "touchcancel.{ns}",
 			touchEnd             : "touchend.{ns}",
 			touchLeave           : "touchleave.{ns}",
 			touchMove            : "touchmove.{ns}",
 			touchStart           : "touchstart.{ns}"
 		};
+
+	/**
+	 * @method
+	 * @name NoConflict
+	 * @description Resolves plugin namespace conflicts
+	 * @example Formstone.NoConflict();
+	 */
+
+	Core.prototype.NoConflict = function() {
+		Formstone.DontConflict = true;
+
+		for (var i in Formstone.Plugins) {
+			if (Formstone.Plugins.hasOwnProperty(i)) {
+				$[i]    = Formstone.Conflicts[i];
+				$.fn[i] = Formstone.Conflicts.fn[i];
+			}
+		}
+	};
 
 	/**
 	 * @method
@@ -196,7 +281,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 
 			var namespaceDash  = "fs-" + namespace,
 				namespaceDot   = "fs." + namespace,
-				namespaceClean = "fs" + namespace.replace(/(^|\s)([a-z])/g, function(m, p1, p2) { return p1 + p2.toUpperCase(); });
+				namespaceClean = "fs"  + namespace.replace(/(^|\s)([a-z])/g, function(m, p1, p2) { return p1 + p2.toUpperCase(); });
 
 			/**
 			 * @method private
@@ -206,18 +291,23 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			 */
 
 			function initialize(options) {
-				// Extend Defaults
+				// Maintain Chain
 
-				var hasOptions = $.type(options) === "object";
+				var hasOptions = $.type(options) === "object",
+					$targets = this,
+					$postTargets = $(),
+					$element,
+					i,
+					count;
+
+				// Extend Defaults
 
 				options = $.extend(true, {}, settings.defaults || {}, (hasOptions ? options : {}));
 
-				// Maintain Chain
+				// All targets
 
-				var $targets = this;
-
-				for (var i = 0, count = $targets.length; i < count; i++) {
-					var $element = $targets.eq(i);
+				for (i = 0, count = $targets.length; i < count; i++) {
+					$element = $targets.eq(i);
 
 					// Gaurd Against Exiting Instances
 
@@ -225,25 +315,40 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 
 						// Extend w/ Local Options
 
-						var localOptions = $element.data(namespace + "-options"),
-							data = $.extend(true, {
-								$el : $element
-							}, options, ($.type(localOptions) === "object" ? localOptions : {}) );
+						var guid    = "__" + settings.guid++,
+							rawGuid = settings.classes.raw.base + guid,
+							locals  = $element.data(namespace + "-options"),
+							data    = $.extend(true, {
+								$el     : $element,
+								guid    : guid,
+								rawGuid : rawGuid,
+								dotGuid : "." + rawGuid
+							}, options, ($.type(locals) === "object" ? locals : {}) );
 
 						// Cache Instance
 
 						$element.addClass(settings.classes.raw.element)
-						        .data(namespaceDash, data);
-
-						// Setup
-
-						setupPlugin(namespace);
+						        .data(namespaceClean, data);
 
 						// Constructor
 
 						settings.methods._construct.apply($element, [ data ].concat(Array.prototype.slice.call(arguments, (hasOptions ? 1 : 0) )));
+
+						// Post Constructor
+
+						$postTargets = $postTargets.add($element);
 					}
 
+				}
+
+				// Post targets
+
+				for (i = 0, count = $postTargets.length; i < count; i++) {
+					$element = $postTargets.eq(i);
+
+					// Post Constructor
+
+					settings.methods._postConstruct.apply($element, [ getData($element) ]);
 				}
 
 				return $targets;
@@ -267,7 +372,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 				settings.functions.iterate.apply(this, [ settings.methods._destruct ].concat(Array.prototype.slice.call(arguments, 1)));
 
 				this.removeClass(settings.classes.raw.element)
-					.removeData(namespaceDash);
+					.removeData(namespaceClean);
 			}
 
 			/**
@@ -279,7 +384,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			 */
 
 			function getData($element) {
-				return $element.data(namespaceDash);
+				return $element.data(namespaceClean);
 			}
 
 			/**
@@ -397,8 +502,9 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 
 				_setup         : $.noop,    // Document ready
 				_construct     : $.noop,    // Constructor
+				_postConstruct : $.noop,    // Post Constructor
 				_destruct      : $.noop,    // Destructor
-				_resize        : false,    // Window resize
+				_resize        : false,     // Window resize
 
 				// Public Methods
 
@@ -427,19 +533,38 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 
 			if (settings.widget) {
 
-				// Widget Delegation: $(".target").plugin("method", ...);
-				$.fn[namespace] = $.fn[namespaceClean] = delegateWidget;
+				// Store conflicting namesapaces
+				Formstone.Conflicts.fn[namespace] = $.fn[namespace];
+
+				// Widget Delegation: $(".target").fsPlugin("method", ...);
+				$.fn[namespaceClean] = delegateWidget;
+
+				if (!Formstone.DontConflict) {
+
+					// $(".target").plugin("method", ...);
+					$.fn[namespace] = $.fn[namespaceClean];
+				}
 			}
 
 			// Utility
 
-				// Utility Delegation: $.plugin("method", ... );
-				$[namespace] = $[namespaceClean] = settings.utilities._delegate || delegateUtility;
+				Formstone.Conflicts[namespace] = $[namespace];
+
+				// Utility Delegation: $.fsPlugin("method", ... );
+				$[namespaceClean] = settings.utilities._delegate || delegateUtility;
+
+				if (!Formstone.DontConflict) {
+
+					// $.plugin("method", ... );
+					$[namespace] = $[namespaceClean];
+				}
 
 			// Run Setup
 
 			settings.namespace      = namespace;
 			settings.namespaceClean = namespaceClean;
+
+			settings.guid = 0;
 
 			// Resize handler
 
@@ -454,8 +579,27 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 				Formstone.ResizeHandlers.sort(sortPriority);
 			}
 
+			// RAF handler
+
+			if (settings.methods._raf) {
+				Formstone.RAFHandlers.push({
+					namespace: namespace,
+					priority: settings.priority,
+					callback: settings.methods._raf
+				});
+
+				// Sort handlers on push
+				Formstone.RAFHandlers.sort(sortPriority);
+			}
+
 			return settings;
 		})(namespace, settings);
+
+		// Setup, catches lazy-loaded components, ensures order
+
+		$Ready.then(function() {
+			setupPlugin(namespace);
+		});
 
 		return Formstone.Plugins[namespace];
 	};
@@ -512,14 +656,14 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 		return _props;
 	}
 
-	// Set Transition Information
+	// Set Browser Prefixes
 
-	function setTransitionInformation() {
+	function setBrowserPrefixes() {
 		var transitionEvents = {
-				"transition"          : "transitionend",
+				"WebkitTransition"    : "webkitTransitionEnd",
 				"MozTransition"       : "transitionend",
 				"OTransition"         : "otransitionend",
-				"WebkitTransition"    : "webkitTransitionEnd"
+				"transition"          : "transitionend"
 			},
 			transitionProperties = [
 				"transition",
@@ -535,12 +679,11 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 			transitionEvent       = "transitionend",
 			transitionProperty    = "",
 			transformProperty     = "",
-			test                  = document.createElement("div"),
+			testDiv               = document.createElement("div"),
 			i;
 
-
 		for (i in transitionEvents) {
-			if (transitionEvents.hasOwnProperty(i) && i in test.style) {
+			if (transitionEvents.hasOwnProperty(i) && i in testDiv.style) {
 				transitionEvent = transitionEvents[i];
 				Formstone.support.transition = true;
 				break;
@@ -550,7 +693,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 		Events.transitionEnd = transitionEvent + ".{ns}";
 
 		for (i in transitionProperties) {
-			if (transitionProperties.hasOwnProperty(i) && transitionProperties[i] in test.style) {
+			if (transitionProperties.hasOwnProperty(i) && transitionProperties[i] in testDiv.style) {
 				transitionProperty = transitionProperties[i];
 				break;
 			}
@@ -559,7 +702,7 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 		Formstone.transition = transitionProperty;
 
 		for (i in transformProperties) {
-			if (transformProperties.hasOwnProperty(i) && transformProperties[i] in test.style) {
+			if (transformProperties.hasOwnProperty(i) && transformProperties[i] in testDiv.style) {
 				Formstone.support.transform = true;
 				transformProperty = transformProperties[i];
 				break;
@@ -592,6 +735,22 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 	Formstone.$window.on("resize.fs", onWindowResize);
 	onWindowResize();
 
+	// RAF
+
+	function handleRAF() {
+		if (Formstone.support.raf) {
+			Formstone.window.requestAnimationFrame(handleRAF);
+
+			for (var i in Formstone.RAFHandlers) {
+				if (Formstone.RAFHandlers.hasOwnProperty(i)) {
+					Formstone.RAFHandlers[i].callback.call(window);
+				}
+			}
+		}
+	}
+
+	handleRAF();
+
 	// Sort Priority
 
 	function sortPriority(a, b) {
@@ -603,21 +762,24 @@ var Formstone = this.Formstone = (function ($, window, document, undefined) {
 	$(function() {
 		Formstone.$body = $("body");
 
-		for (var i in Formstone.Plugins) {
-			if (Formstone.Plugins.hasOwnProperty(i)) {
-				setupPlugin(i);
-			}
-		}
+		$Ready.resolve();
+
+		// ie8 fallback support
+		Formstone.support.nativeMatchMedia = Formstone.support.matchMedia && !$("html").hasClass("no-matchmedia");
 	});
 
 	// Custom Events
 
 	Events.clickTouchStart = Events.click + " " + Events.touchStart;
 
-	// Transitions
+	// Browser Prefixes
 
-	setTransitionInformation();
+	setBrowserPrefixes();
+
+	window.Formstone = Formstone;
 
 	return Formstone;
 
-})(jQuery, this, document);
+})
+
+);

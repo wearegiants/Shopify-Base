@@ -1,4 +1,16 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./touch"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -43,17 +55,21 @@
 		var html = "";
 
 		// Not valid in the spec
-		data.disbaled = this.is(":disabled");
 		data.vertical = this.attr("orient") === "vertical" || data.vertical;
+		data.disabled = this.is(":disabled") || this.is("[readonly]");
 
-		html += '<div class="' + RawClasses.track + '">';
-		html += '<div class="' + RawClasses.handle + '">';
+		html += '<div class="' + RawClasses.track + '" aria-hidden="true">';
+		if (data.fill) {
+			html += '<span class="' + RawClasses.fill + '"></span>';
+		}
+		html += '<div class="' + RawClasses.handle + '" role="slider">';
 		html += '<span class="' + RawClasses.marker + '"></span>';
 		html += '</div>';
 		html += '</div>';
 
 		var baseClasses = [
 			RawClasses.base,
+			data.theme,
 			data.customClass,
 			(data.vertical) ? RawClasses.vertical : "",
 			(data.labels)   ? RawClasses.labels   : "",
@@ -66,6 +82,7 @@
 
 		data.$container = this.parents(Classes.base);
 		data.$track     = data.$container.find(Classes.track);
+		data.$fill      = data.$container.find(Classes.fill);
 		data.$handle    = data.$container.find(Classes.handle);
 		data.$output    = data.$container.find(Classes.output);
 
@@ -84,7 +101,7 @@
 			.on(Events.blur, data, onBlur)
 			.on(Events.change, data, onChange);
 
-		data.$container.touch({
+		data.$container.fsTouch({
 			pan: true,
 			axis: data.vertical ? "y" : "x"
 		}).on(Events.panStart, data, onPanStart)
@@ -105,7 +122,7 @@
 
 	function destruct(data) {
 		data.$container.off(Events.namespace)
-					   .touch("destroy");
+					   .fsTouch("destroy");
 
 		data.$track.remove();
 		data.$labels.remove();
@@ -149,6 +166,28 @@
 
 			data.disabled = true;
 		}
+	}
+
+	/**
+	* @method
+	* @name update
+	* @description Updates instance.
+	* @example $(".target").range("update");
+	*/
+
+	function updateInstance(data) {
+		data.min       = parseFloat(data.$el.attr("min"))  || 0;
+		data.max       = parseFloat(data.$el.attr("max"))  || 100;
+		data.step      = parseFloat(data.$el.attr("step")) || 1;
+		data.digits    = data.step.toString().length - data.step.toString().indexOf(".");
+		data.value     = parseFloat(this.val()) || (data.min + ((data.max - data.min) / 2));
+
+		if (data.labels) {
+			data.$labels.filter(Classes.label_max).html( data.formatter.call(this, (data.labels.max) ? data.labels.max : data.max) );
+			data.$labels.filter(Classes.label_min).html( data.formatter.call(this, (data.labels.max) ? data.labels.min : data.min) );
+		}
+
+		resizeInstance.call(this, data);
 	}
 
 	/**
@@ -196,7 +235,7 @@
 
 		var data = e.data;
 
-		if (!data.disbaled) {
+		if (!data.disabled) {
 			onPan(e);
 
 			data.$container.addClass(RawClasses.focus);
@@ -216,13 +255,15 @@
 		var data = e.data,
 			percent = 0;
 
-		if (data.vertical) {
-			percent = 1 - (e.pageY - data.offset.top) / data.trackHeight;
-		} else {
-			percent = (e.pageX - data.offset.left) / data.trackWidth;
-		}
+		if (!data.disabled) {
+			if (data.vertical) {
+				percent = 1 - (e.pageY - data.offset.top) / data.trackHeight;
+			} else {
+				percent = (e.pageX - data.offset.left) / data.trackWidth;
+			}
 
-		position(data, percent);
+			position(data, percent);
+		}
 	}
 
 	/**
@@ -237,7 +278,9 @@
 
 		var data = e.data;
 
-		data.$container.removeClass(RawClasses.focus);
+		if (!data.disabled) {
+			data.$container.removeClass(RawClasses.focus);
+		}
 	}
 
 	/**
@@ -248,7 +291,7 @@
 	 */
 
 	function onFocus(e) {
-		e.data.$container.addClass("focus");
+		e.data.$container.addClass(RawClasses.focus);
 	}
 
 	/**
@@ -259,7 +302,7 @@
 	 */
 
 	function onBlur(e) {
-		e.data.$container.removeClass("focus");
+		e.data.$container.removeClass(RawClasses.focus);
 	}
 
 	/**
@@ -290,12 +333,14 @@
 		var value = ((data.min - data.max) * perc);
 		value = -parseFloat(value.toFixed(data.digits));
 
+		data.$fill.css((data.vertical) ? "height" : "width", (perc * 100) + "%");
 		data.$handle.css((data.vertical) ? "bottom" : "left", (perc * 100) + "%");
+/* 					.attr("aria-valuenow", value) */
 		value += data.min;
 
-		if (value !== data.value && value && isResize !== true) {
+		if (value !== data.value && value !== false && isResize !== true) {
 			data.$el.val(value)
-					.trigger(Events.change, [ true ]);
+					.trigger(Events.raw.change, [ true ]);
 
 			data.value = value;
 		}
@@ -339,6 +384,9 @@
 	 * @name Range
 	 * @description A jQuery plugin for cross browser range inputs.
 	 * @type widget
+	 * @main range.js
+	 * @main range.css
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency touch.js
 	 */
@@ -349,26 +397,31 @@
 			/**
 			 * @options
 			 * @param customClass [string] <''> "Class applied to instance"
+			 * @param fill [boolean] <false> "Flag to draw fill"
 			 * @param formatter [function] <false> "Value format function"
-			 * @param labels [boolean] <true> "Draw labels"
+			 * @param labels [boolean] <true> "Flag to draw labels"
 			 * @param labels.max [string] "Max value label; defaults to max value"
 			 * @param labels.min [string] "Min value label; defaults to min value"
+			 * @param theme [string] <"fs-light"> "Theme class name"
 			 * @param vertical [boolean] <false> "Flag to render vertical range; Deprecated use 'orientation' attribute instead
 			 */
 
 			defaults: {
 				customClass    : "",
+				fill           : false,
 				formatter      : false,
 				labels: {
 					max        : false,
 					min        : false
 				},
+				theme          : "fs-light",
 				vertical       : false
 			},
 
 			classes: [
 				"track",
 				"handle",
+				"fill",
 				"marker",
 				"labels",
 				"label",
@@ -388,13 +441,8 @@
 
 				enable        : enable,
 				disable       : disable,
-				resize        : resizeInstance
-			},
-
-			events: {
-				panStart    : "panstart",
-				pan         : "pan",
-				panEnd      : "panend"
+				resize        : resizeInstance,
+				update        : updateInstance
 			}
 		}),
 
@@ -407,4 +455,6 @@
 
 		$Instances    = [];
 
-})(jQuery, Formstone);
+})
+
+);

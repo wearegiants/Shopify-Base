@@ -1,4 +1,16 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./mediaquery"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -10,21 +22,22 @@
 	 */
 
 	function construct(data) {
-		data.mq       = "(max-width:" + (data.maxWidth === Infinity ? "100000px" : data.maxWidth) + ")";
-		data.mqGuid   = RawClasses.base + "__" + (GUID++);
+		data.mq = "(max-width:" + (data.maxWidth === Infinity ? "100000px" : data.maxWidth) + ")";
 
 		var html = "";
 		html += '<button type="button" class="' + [RawClasses.control, RawClasses.control_previous].join(" ") + '">' + data.labels.previous + '</button>';
 		html += '<button type="button" class="' + [RawClasses.control, RawClasses.control_next].join(" ") + '">' + data.labels.next + '</button>';
-		html += '<div class="' + RawClasses.position + '">';
+		html += '<div class="' + RawClasses.position + '" aria-hidden="true">';
 		html += '<span class="' + RawClasses.current + '">0</span>';
 		html += ' ' + data.labels.count + ' ';
 		html += '<span class="' + RawClasses.total + '">0</span>';
+		html += '<select class="' + RawClasses.select + '" tabindex="-1" aria-hidden="true"></select>';
 		html += '</div>';
-		html += '<select class="' + RawClasses.select + '" tab-index="-1"></select>';
 
-		this.addClass(RawClasses.base)
-			.wrapInner('<div class="' + RawClasses.pages + '"></div>')
+		data.thisClasses = [RawClasses.base, data.theme, data.customClass];
+
+		this.addClass(data.thisClasses.join(" "))
+			.wrapInner('<div class="' + RawClasses.pages + '" aria-label="pagination"></div>')
 			.prepend(html);
 
 		data.$controls  = this.find(Classes.control);
@@ -36,7 +49,10 @@
 
 		data.total = data.$items.length - 1;
 
-		var index = data.$items.index(data.$items.filter(Classes.active));
+		var index = data.$items.index(data.$items.filter("[data-" + Plugin.namespace + "-active]"));
+		if (!index) {
+			index = data.$items.index(data.$items.filter(Classes.active)); // reverse compat.
+		}
 
 		data.$items.eq(0)
 				   .addClass(RawClasses.first)
@@ -50,12 +66,12 @@
 
 		buildMobilePages(data);
 
-		this.on(Events.clickTouchStart, Classes.page, data, onPageClick)
-			.on(Events.clickTouchStart, Classes.control, data, onControlClick)
-			.on(Events.clickTouchStart, Classes.position, data, onPositionClick)
-			.on(Events.change, Classes.select, onPageSelect);
+		this.on(Events.click, Classes.page, data, onPageClick)
+			.on(Events.click, Classes.control, data, onControlClick)
+			// .on(Events.click, Classes.position, data, onPositionClick)
+			.on(Events.change, Classes.select, data, onPageSelect);
 
-		$.mediaquery("bind", data.mqGuid, data.mq, {
+		$.fsMediaquery("bind", data.rawGuid, data.mq, {
 			enter: function() {
 				data.$el.addClass(RawClasses.mobile);
 			},
@@ -75,7 +91,7 @@
 	 */
 
 	function destruct(data) {
-		$.mediaquery("unbind", data.mqGuid, data.mq);
+		$.fsMediaquery("unbind", data.rawGuid);
 
 		data.$controls.remove();
 		data.$ellipsis.remove();
@@ -84,7 +100,7 @@
 		data.$items.removeClass( [RawClasses.page, RawClasses.active, RawClasses.visible, RawClasses.first, RawClasses.last].join(" ") )
 				   .unwrap();
 
-		this.removeClass(RawClasses.base)
+		this.removeClass(data.thisClasses.join(" "))
 			.off(Events.namespace);
 	}
 
@@ -142,16 +158,15 @@
 	 */
 
 	function onPageClick(e) {
-		Functions.killEvent(e);
+		var data    = e.data,
+			$target = $(e.currentTarget),
+			index   = data.$items.index($target);
 
-		var data = e.data,
-			index = data.$items.index( $(e.currentTarget) );
-
-		/*
 		if (data.ajax) {
 			Functions.killEvent(e);
+		} else {
+			$target[0].click();
 		}
-		*/
 
 		updatePage(data, index);
 	}
@@ -211,6 +226,7 @@
 			}
 
 			data.$items.removeClass(RawClasses.visible)
+					   .removeClass(RawClasses.hidden)
 					   .filter(Classes.active)
 					   .removeClass(RawClasses.active)
 					   .end()
@@ -219,6 +235,8 @@
 					   .end()
 					   .slice(start, end)
 					   .addClass(RawClasses.visible);
+
+			data.$items.not(Classes.visible).addClass(RawClasses.hidden);
 
 			data.$position.find(Classes.current)
 						  .text(data.index + 1)
@@ -229,13 +247,13 @@
 			data.$select.val(data.index);
 
 			// controls
-			data.$controls.removeClass(Classes.disabled);
+			data.$controls.removeClass(RawClasses.visible);
 
-			if (index === 0) {
-				data.$controls.filter(Classes.control_previous).addClass(RawClasses.disabled);
+			if (index > 0) {
+				data.$controls.filter(Classes.control_previous).addClass(RawClasses.visible);
 			}
-			if (index === data.total) {
-				data.$controls.filter(Classes.control_next).addClass(RawClasses.disabled);
+			if (index < data.total) {
+				data.$controls.filter(Classes.control_next).addClass(RawClasses.visible);
 			}
 
 			// elipsis
@@ -278,6 +296,9 @@
 	 * @name Pagination
 	 * @description A jQuery plugin for simple pagination.
 	 * @type widget
+	 * @main pagination.js
+	 * @main pagination.css
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency mediaquery.js
 	 */
@@ -294,6 +315,7 @@
 			 * @param labels.next [string] <'Next'> "Gallery control text"
 			 * @param labels.previous [string] <'Previous'> "Gallery control text"
 			 * @param maxWidth [string] <'980px'> "Width at which to auto-disable plugin"
+			 * @param theme [string] <"fs-light"> "Theme class name"
 			 * @param visible [int] <2> "Visible pages before and after current page"
 			 */
 
@@ -306,6 +328,7 @@
 					previous    : "Previous"
 				},
 				maxWidth        : "740px",
+				theme           : "fs-light",
 				visible         : 2
 			},
 
@@ -316,8 +339,9 @@
 				"active",
 				"first",
 				"last",
-				"visible",
 				"ellipsis",
+				"visible",
+				"hidden",
 
 				"control",
 				"control_previous",
@@ -352,7 +376,8 @@
 		Classes       = Plugin.classes,
 		RawClasses    = Classes.raw,
 		Events        = Plugin.events,
-		Functions     = Plugin.functions,
-		GUID          = 0;
+		Functions     = Plugin.functions;
 
-})(jQuery, Formstone);
+})
+
+);

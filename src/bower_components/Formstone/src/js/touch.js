@@ -1,4 +1,15 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -15,45 +26,37 @@
 
 		this.on( Events.dragStart, Functions.killEvent );
 
-		if (data.tap) {
-			// Tap
+		if (data.swipe) {
+			data.pan = true;
+		}
 
-			data.pan   = false;
-			data.scale = false;
-			data.swipe = false;
+		if (data.scale) {
+			data.axis = false;
+		}
 
-			if (Formstone.support.touch) {
-				this.on( [Events.touchStart, Events.pointerDown].join(" "), data, onPointerStart);
+		data.axisX = data.axis === "x";
+		data.axisY = data.axis === "y";
+
+		if (Formstone.support.pointer) {
+			var action = "";
+
+			if (!data.axis || (data.axisX && data.axisY)) {
+				action = "none";
 			} else {
-				this.on(Events.click, data, onClick);
-			}
-		} else if (data.pan || data.swipe || data.scale) {
-			// Pan / Swipe / Scale
-
-			data.tap = false;
-
-			if (data.swipe) {
-				data.pan = true;
+				if (data.axisX) {
+					action += " pan-y";
+				}
+				if (data.axisY) {
+					action += " pan-x";
+				}
 			}
 
-			if (data.scale) {
-				data.axis = false;
-			}
+			touchAction(this, action);
 
-			if (data.axis) {
-				data.axisX = data.axis === "x";
-				data.axisY = data.axis === "y";
-
-				// touchAction(this, "pan-" + (data.axisY ? "y" : "x"));
-			} else {
-				touchAction(this, "none");
-			}
-
-			this.on( [Events.touchStart, Events.pointerDown].join(" "), data, onTouch);
-
-			if (data.pan && !Formstone.support.touch) {
-				this.on( Events.mouseDown, data, onPointerStart);
-			}
+			this.on(Events.pointerDown, data, onTouch);
+		} else {
+			this.on(Events.touchStart, data, onTouch)
+				.on(Events.mouseDown, data, onPointerStart);
 		}
 	}
 
@@ -65,7 +68,9 @@
 	 */
 
 	function destruct(data) {
-		touchAction(this.off(Events.namespace), "");
+		this.off(Events.namespace);
+
+		touchAction(this, "");
 	}
 
 	/**
@@ -84,7 +89,7 @@
 		var data    = e.data,
 			oe      = e.originalEvent;
 
-		if (oe.type.match(/(up|end)$/i)) {
+		if (oe.type.match(/(up|end|cancel)$/i)) {
 			onPointerEnd(e);
 			return;
 		}
@@ -95,15 +100,15 @@
 			for (var i in data.touches) {
 				if (data.touches[i].id === oe.pointerId) {
 					activeTouch = true;
-					data.touches[i].pageX    = oe.clientX;
-					data.touches[i].pageY    = oe.clientY;
+					data.touches[i].pageX    = oe.pageX;
+					data.touches[i].pageY    = oe.pageY;
 				}
 			}
 			if (!activeTouch) {
 				data.touches.push({
 					id       : oe.pointerId,
-					pageX    : oe.clientX,
-					pageY    : oe.clientY
+					pageX    : oe.pageX,
+					pageY    : oe.pageY
 				});
 			}
 		} else {
@@ -128,7 +133,11 @@
 
 	function onPointerStart(e) {
 		var data     = e.data,
-			touch    = ($.type(data.touches) !== "undefined") ? data.touches[0] : null;
+			touch    = ($.type(data.touches) !== "undefined" && data.touches.length) ? data.touches[0] : null;
+
+		if (touch) {
+			data.$el.off(Events.mouseDown);
+		}
 
 		if (!data.touching) {
 			data.startE      = e.originalEvent;
@@ -139,58 +148,53 @@
 			data.passed      = false;
 		}
 
-		if (data.tap) {
-			// Tap
+		// Clear old click events
 
-			data.clicked = false;
+		if (data.$links) {
+			data.$links.off(Events.click);
+		}
 
-			data.$el.on( [Events.touchMove, Events.pointerMove].join(" "), data, onTouch)
-					.on( [Events.touchEnd, Events.touchCancel, Events.pointerUp, Events.pointerCancel].join(" ") , data, onTouch);
+		// Pan / Scale
 
-		} else if (data.pan || data.scale) {
-			// Clear old click events
+		var newE = buildEvent(data.scale ? Events.scaleStart : Events.panStart, e, data.startX, data.startY, data.scaleD, 0, 0, "", "");
 
-			if (data.$links) {
-				data.$links.off(Events.click);
+		if (data.scale && data.touches && data.touches.length >= 2) {
+			var t = data.touches;
+
+			data.pinch = {
+				startX     : midpoint(t[0].pageX, t[1].pageX),
+				startY     : midpoint(t[0].pageY, t[1].pageY),
+				startD     : pythagorus((t[1].pageX - t[0].pageX), (t[1].pageY - t[0].pageY))
+			};
+
+			newE.pageX    = data.startX   = data.pinch.startX;
+			newE.pageY    = data.startY   = data.pinch.startY;
+		}
+
+		// Only bind at first touch
+		if (!data.touching) {
+			data.touching = true;
+
+			if (data.pan && !touch) {
+				$Window.on(Events.mouseMove, data, onPointerMove)
+					   .on(Events.mouseUp, data, onPointerEnd);
 			}
 
-			// Pan / Scale
-
-			var newE = buildEvent(data.scale ? Events.scaleStart : Events.panStart, e, data.startX, data.startY, data.scaleD, 0, 0, "", "");
-
-			if (data.scale && data.touches && data.touches.length >= 2) {
-				var t = data.touches;
-
-				data.pinch = {
-					startX     : midpoint(t[0].pageX, t[1].pageX),
-					startY     : midpoint(t[0].pageY, t[1].pageY),
-					startD     : pythagorus((t[1].pageX - t[0].pageX), (t[1].pageY - t[0].pageY))
-				};
-
-				newE.pageX    = data.startX   = data.pinch.startX;
-				newE.pageY    = data.startY   = data.pinch.startY;
-			}
-
-			// Only bind at first touch
-			if (!data.touching) {
-				data.touching = true;
-
-				if (data.pan) {
-					$Window.on(Events.mouseMove, data, onPointerMove)
-						   .on(Events.mouseUp, data, onPointerEnd);
-				}
-
+			if (Formstone.support.pointer) {
 				$Window.on( [
-					Events.touchMove,
-					Events.touchEnd,
-					Events.touchCancel,
 					Events.pointerMove,
 					Events.pointerUp,
 					Events.pointerCancel
 				].join(" ") , data, onTouch);
-
-				data.$el.trigger(newE);
+			} else {
+				$Window.on( [
+					Events.touchMove,
+					Events.touchEnd,
+					Events.touchCancel
+				].join(" ") , data, onTouch);
 			}
+
+			data.$el.trigger(newE);
 		}
 	}
 
@@ -203,7 +207,7 @@
 
 	function onPointerMove(e) {
 		var data      = e.data,
-			touch     = ($.type(data.touches) !== "undefined") ? data.touches[0] : null,
+			touch     = ($.type(data.touches) !== "undefined" && data.touches.length) ? data.touches[0] : null,
 			newX      = (touch) ? touch.pageX : e.pageX,
 			newY      = (touch) ? touch.pageY : e.pageY,
 			deltaX    = newX - data.startX,
@@ -213,62 +217,138 @@
 			movedX    = Math.abs(deltaX) > TouchThreshold,
 			movedY    = Math.abs(deltaY) > TouchThreshold;
 
-		if (data.tap) {
-			// Tap
-
-			if (movedX || movedY) {
-				data.$el.off( [
-					Events.touchMove,
-					Events.touchEnd,
-					Events.touchCancel,
-					Events.pointerMove,
-					Events.pointerUp,
-					Events.pointerCancel
-				].join(" ") );
+		if (!data.passed && data.axis && ((data.axisX && movedY) || (data.axisY && movedX)) ) {
+			// if axis and moved in opposite direction
+			onPointerEnd(e);
+		} else {
+			if (!data.passed && (!data.axis || (data.axis && (data.axisX && movedX) || (data.axisY && movedY)))) {
+				// if has axis and moved in same direction
+				data.passed = true;
 			}
-		} else if (data.pan || data.scale) {
-			if (!data.passed && data.axis && ((data.axisX && movedY) || (data.axisY && movedX)) ) {
-				// if axis and moved in opposite direction
-				onPointerEnd(e);
-			} else {
-				if (!data.passed && (!data.axis || (data.axis && (data.axisX && movedX) || (data.axisY && movedY)))) {
-					// if has axis and moved in same direction
-					data.passed = true;
+
+			if (data.passed) {
+				Functions.killEvent(e);
+				Functions.killEvent(data.startE);
+			}
+
+			// Pan / Scale
+
+			var fire    = true,
+				newE    = buildEvent(data.scale ? Events.scale : Events.pan, e, newX, newY, data.scaleD, deltaX, deltaY, dirX, dirY);
+
+			if (data.scale) {
+				if (data.touches && data.touches.length >= 2) {
+					var t = data.touches;
+
+					data.pinch.endX     = midpoint(t[0].pageX, t[1].pageX);
+					data.pinch.endY     = midpoint(t[0].pageY, t[1].pageY);
+					data.pinch.endD     = pythagorus((t[1].pageX - t[0].pageX), (t[1].pageY - t[0].pageY));
+					data.scaleD    = (data.pinch.endD / data.pinch.startD);
+					newE.pageX     = data.pinch.endX;
+					newE.pageY     = data.pinch.endY;
+					newE.scale     = data.scaleD;
+					newE.deltaX    = data.pinch.endX - data.pinch.startX;
+					newE.deltaY    = data.pinch.endY - data.pinch.startY;
+				} else if (!data.pan) {
+					fire = false;
 				}
+			}
 
-				if (data.passed) {
-					Functions.killEvent(e);
-					Functions.killEvent(data.startE);
-				}
-
-				// Pan / Scale
-
-				var fire    = true,
-					newE    = buildEvent(data.scale ? Events.scale : Events.pan, e, newX, newY, data.scaleD, deltaX, deltaY, dirX, dirY);
-
-				if (data.scale) {
-					if (data.touches && data.touches.length >= 2) {
-						var t = data.touches;
-
-						data.pinch.endX     = midpoint(t[0].pageX, t[1].pageX);
-						data.pinch.endY     = midpoint(t[0].pageY, t[1].pageY);
-						data.pinch.endD     = pythagorus((t[1].pageX - t[0].pageX), (t[1].pageY - t[0].pageY));
-						data.scaleD    = (data.pinch.endD / data.pinch.startD);
-						newE.pageX     = data.pinch.endX;
-						newE.pageY     = data.pinch.endY;
-						newE.scale     = data.scaleD;
-						newE.deltaX    = data.pinch.endX - data.pinch.startX;
-						newE.deltaY    = data.pinch.endY - data.pinch.startY;
-					} else if (!data.pan) {
-						fire = false;
-					}
-				}
-
-				if (fire) {
-					data.$el.trigger( newE );
-				}
+			if (fire) {
+				data.$el.trigger( newE );
 			}
 		}
+	}
+
+	/**
+	 * @method private
+	 * @name onPointerEnd
+	 * @description Handles pointer end / cancel.
+	 * @param e [object] "Event data"
+	 */
+
+	function onPointerEnd(e) {
+		var data = e.data;
+
+		// Pan / Swipe / Scale
+
+		var touch     = ($.type(data.touches) !== "undefined" && data.touches.length) ? data.touches[0] : null,
+			newX      = (touch) ? touch.pageX : e.pageX,
+			newY      = (touch) ? touch.pageY : e.pageY,
+			deltaX    = newX - data.startX,
+			deltaY    = newY - data.startY,
+			endT      = new Date().getTime(),
+			eType     = data.scale ? Events.scaleEnd : Events.panEnd,
+			dirX      = (deltaX > 0) ? "right" : "left",
+			dirY      = (deltaY > 0) ? "down"  : "up",
+			movedX    = Math.abs(deltaX) > 1,
+			movedY    = Math.abs(deltaY) > 1;
+
+		// Swipe
+
+		if (data.swipe && Math.abs(deltaX) > TouchThreshold && (endT - data.startT) < TouchTime) {
+			eType = Events.swipe;
+		}
+
+		// Kill clicks to internal links
+
+		if ( (data.axis && ((data.axisX && movedY) || (data.axisY && movedX))) || (movedX || movedY) ) {
+			data.$links = data.$el.find("a");
+
+			for (var i = 0, count = data.$links.length; i < count; i++) {
+				bindLink(data.$links.eq(i), data);
+			}
+		}
+
+		var newE = buildEvent(eType, e, newX, newY, data.scaleD, deltaX, deltaY, dirX, dirY);
+
+		$Window.off( [
+			Events.touchMove,
+			Events.touchEnd,
+			Events.touchCancel,
+			Events.mouseMove,
+			Events.mouseUp,
+			Events.pointerMove,
+			Events.pointerUp,
+			Events.pointerCancel
+		].join(" ") );
+
+		data.$el.trigger(newE);
+
+		data.touches = [];
+
+		if (data.scale) {
+			/*
+			if (e.originalEvent.pointerId) {
+				for (var i in data.touches) {
+					if (data.touches[i].id === e.originalEvent.pointerId) {
+						data.touches.splice(i, 1);
+					}
+				}
+			} else {
+				data.touches = e.originalEvent.touches;
+			}
+			*/
+
+			/*
+			if (data.touches.length) {
+				onPointerStart($.extend(e, {
+					data: data,
+					originalEvent: {
+						touches: data.touches
+					}
+				}));
+			}
+			*/
+		}
+
+		if (touch) {
+			data.touchTimer = Functions.startTimer(data.touchTimer, 5, function() {
+				data.$el.on(Events.mouseDown, data, onPointerStart);
+			});
+		}
+
+		data.touching = false;
 	}
 
 	/**
@@ -297,136 +377,6 @@
 	function onLinkClick(e) {
 		Functions.killEvent(e, true);
 		e.data.$links.off(Events.click);
-	}
-
-	/**
-	 * @method private
-	 * @name onPointerEnd
-	 * @description Handles pointer end / cancel.
-	 * @param e [object] "Event data"
-	 */
-
-	function onPointerEnd(e) {
-		var data = e.data;
-
-		if (data.tap) {
-			// Tap
-
-			data.$el.off( [
-				Events.touchMove,
-				Events.touchEnd,
-				Events.touchCancel,
-				Events.pointerMove,
-				Events.pointerUp,
-				Events.pointerCancel,
-				Events.mouseMove,
-				Events.mouseUp
-			].join(" ") );
-
-			data.startE.preventDefault();
-
-			onClick(e);
-		} else if (data.pan || data.scale) {
-
-			// Pan / Swipe / Scale
-
-			var touch     = ($.type(data.touches) !== "undefined") ? data.touches[0] : null,
-				newX      = (touch) ? touch.pageX : e.pageX,
-				newY      = (touch) ? touch.pageY : e.pageY,
-				deltaX    = newX - data.startX,
-				deltaY    = newY - data.startY,
-				endT      = new Date().getTime(),
-				eType     = data.scale ? Events.scaleEnd : Events.panEnd,
-				dirX      = (deltaX > 0) ? "right" : "left",
-				dirY      = (deltaY > 0) ? "down"  : "up",
-				movedX    = Math.abs(deltaX) > 1,
-				movedY    = Math.abs(deltaY) > 1;
-
-			// Swipe
-
-			if (data.swipe && Math.abs(deltaX) > TouchThreshold && (endT - data.startT) < TouchTime) {
-				eType = Events.swipe;
-			}
-
-			// Kill clicks to internal links
-
-			if ( (data.axis && ((data.axisX && movedY) || (data.axisY && movedX))) || (movedX || movedY) ) {
-				data.$links = data.$el.find("a");
-
-				for (var i = 0, count = data.$links.length; i < count; i++) {
-					bindLink(data.$links.eq(i), data);
-				}
-			}
-
-			var newE = buildEvent(eType, e, newX, newY, data.scaleD, deltaX, deltaY, dirX, dirY);
-
-			$Window.off( [
-				Events.touchMove,
-				Events.touchEnd,
-				Events.touchCancel,
-				Events.mouseMove,
-				Events.mouseUp,
-				Events.pointerMove,
-				Events.pointerUp,
-				Events.pointerCancel
-			].join(" ") );
-
-			data.$el.trigger(newE);
-
-			data.touches = [];
-
-			if (data.scale) {
-				/*
-				if (e.originalEvent.pointerId) {
-					for (var i in data.touches) {
-						if (data.touches[i].id === e.originalEvent.pointerId) {
-							data.touches.splice(i, 1);
-						}
-					}
-				} else {
-					data.touches = e.originalEvent.touches;
-				}
-				*/
-
-				/*
-				if (data.touches.length) {
-					onPointerStart($.extend(e, {
-						data: data,
-						originalEvent: {
-							touches: data.touches
-						}
-					}));
-				}
-				*/
-			}
-		}
-
-		data.touching = false;
-	}
-
-	/**
-	 * @method private
-	 * @name onClick
-	 * @description Handles click.
-	 * @param e [object] "Event data"
-	 */
-
-	function onClick(e) {
-		Functions.killEvent(e);
-
-		var data = e.data;
-
-		if (!data.clicked) {
-			if (e.type !== "click") {
-				data.clicked = true;
-			}
-
-			var newX    = (data.startE) ? data.startX : e.pageX,
-				newY    = (data.startE) ? data.startY : e.pageY,
-				newE    = buildEvent(Events.tap, e.originalEvent, newX, newY, 1, 0, 0);
-
-			data.$el.trigger( newE );
-		}
 	}
 
 	/**
@@ -499,6 +449,8 @@
 	 * @name Touch
 	 * @description A jQuery plugin for multi-touch events.
 	 * @type widget
+	 * @main touch.js
+	 * @dependency jQuery
 	 * @dependency core.js
 	 */
 
@@ -512,15 +464,13 @@
 			 * @param pan [boolean] <false> "Pan events"
 			 * @param scale [boolean] <false> "Scale events"
 			 * @param swipe [boolean] <false> "Swipe events"
-			 * @param tap [boolean] <false> "'Fastclick' event"
 			 */
 
 			defaults : {
 				axis     : false,
 				pan      : false,
 				scale    : false,
-				swipe    : false,
-				tap      : false
+				swipe    : false
 			},
 
 			methods : {
@@ -549,7 +499,6 @@
 
 		/**
 		 * @events
-		 * @event tap "'Fastclick' event; Prevents ghost clicks on mobile"
 		 * @event panstart "Panning started"
 		 * @event pan "Panning"
 		 * @event panend "Panning ended"
@@ -559,7 +508,6 @@
 		 * @event swipe "Swipe"
 		 */
 
-		Events.tap           = "tap";
 		Events.pan           = "pan";
 		Events.panStart      = "panstart";
 		Events.panEnd        = "panend";
@@ -568,4 +516,6 @@
 		Events.scaleEnd      = "scaleend";
 		Events.swipe         = "swipe";
 
-})(jQuery, Formstone);
+})
+
+);

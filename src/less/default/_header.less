@@ -1,0 +1,48 @@
+.header {
+  
+  &__logo {}
+  
+  &__nav {}
+  
+  &__title {}
+  
+  &__logo {}
+  
+  &--sm {}
+  
+  &--md {
+    padding: 20px 0;
+  }
+  
+  &--lg {
+  	padding: 40px 0;
+  }
+
+  &--main {
+    padding: 40px 0 10px;
+  }
+  
+}
+
+#header {
+  
+  background-color: @white;
+
+  &.fs-swap-active {
+    box-shadow: 0 0 10px rgba(0,0,0,.15);
+    padding-bottom: 5px;
+  }
+
+	&-submenu {
+    display: none;
+    .divider {
+      margin-bottom: 5px;
+    }
+    &.fs-swap {
+      &-active {
+        display: block;
+      }
+    }
+  }
+
+}

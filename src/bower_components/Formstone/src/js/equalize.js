@@ -1,4 +1,16 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./mediaquery"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -32,7 +44,6 @@
 	function construct(data) {
 		data.maxWidth = (data.maxWidth === Infinity ? "100000px" : data.maxWidth);
 		data.mq       = "(min-width:" + data.minWidth + ") and (max-width:" + data.maxWidth + ")";
-		data.mqGuid   = RawClasses.base + "__" + (GUID++);
 		data.type     = (data.property === "height") ? "outerHeight" : "outerWidth";
 
 		if (data.target) {
@@ -45,7 +56,7 @@
 
 		cacheInstances();
 
-		$.mediaquery("bind", data.mqGuid, data.mq, {
+		$.fsMediaquery("bind", data.rawGuid, data.mq, {
 			enter: function() {
 				enable.call(data.$el, data);
 			},
@@ -65,8 +76,17 @@
 	function destruct(data) {
 		tearDown(data);
 
+		$.fsMediaquery("unbind", data.rawGuid);
+
 		cacheInstances();
 	}
+
+	/**
+	 * @method
+	 * @name resize
+	 * @description Resizes instance
+	 * @example $(".target").equalize("resize");
+	 */
 
 	/**
 	 * @method private
@@ -76,6 +96,10 @@
 	 */
 
 	function resizeInstance(data) {
+		if (data.data) {
+			data = data.data; // normalize image resize events
+		}
+
 		if (data.enabled) {
 			var value,
 				check,
@@ -127,6 +151,12 @@
 		if (!data.enabled) {
 			data.enabled = true;
 
+			var $images = data.$el.find("img");
+
+			if ($images.length) {
+				$images.on(Events.load, data, resizeInstance);
+			}
+
 			resizeInstance(data);
 		}
 	}
@@ -142,6 +172,8 @@
 		for (var i = 0; i < data.target.length; i++) {
 			data.$el.find( data.target[i] ).css(data.property, "");
 		}
+
+		data.$el.find("img").off(Events.namespace);
 	}
 
 	/**
@@ -149,6 +181,8 @@
 	 * @name Equalize
 	 * @description A jQuery plugin for equal dimensions.
 	 * @type widget
+	 * @main equalize.js
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency mediaquery.js
 	 */
@@ -167,7 +201,7 @@
 
 			defaults: {
 				maxWidth    : Infinity,
-				minWidth    : '0px',
+				minWidth    : "0px",
 				property    : "height",
 				target      : null
 			},
@@ -175,7 +209,9 @@
 			methods : {
 				_construct    : construct,
 				_destruct     : destruct,
-				_resize       : resize
+				_resize       : resize,
+
+				resize        : resizeInstance
 			}
 		}),
 
@@ -183,9 +219,11 @@
 
 		Classes        = Plugin.classes,
 		RawClasses     = Classes.raw,
+		Events         = Plugin.events,
 		Functions      = Plugin.functions,
-		GUID           = 0,
 
 		$Instances     = [];
 
-})(jQuery, Formstone);
+})
+
+);

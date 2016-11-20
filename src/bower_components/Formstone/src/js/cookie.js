@@ -1,4 +1,15 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -26,7 +37,7 @@
 			if ($.type(key) !== "undefined") {
 				if ($.type(value) !== "undefined") {
 					if (value === null) {
-						eraseCookie(key);
+						eraseCookie(key, options);
 					} else {
 						createCookie(key, value, options);
 					}
@@ -111,10 +122,12 @@
 	 * @example $.cookie(key, null);
 	 */
 
-	function eraseCookie(key) {
-		createCookie(key, "", {
+	function eraseCookie(key, options) {
+		createCookie(key, "", $.extend({}, options, {
 			expires: -604800000 // -7 days
-		});
+		}));
+
+		console.log(Document.cookie);
 	}
 
 	/**
@@ -122,6 +135,8 @@
 	 * @name Cookie
 	 * @description A jQuery plugin for simple access to browser cookies.
 	 * @type utility
+	 * @main cookie.js
+	 * @dependency jQuery
 	 * @dependency core.js
 	 */
 
@@ -149,4 +164,6 @@
 
 		Document = Formstone.document;
 
-})(jQuery, Formstone);
+})
+
+);

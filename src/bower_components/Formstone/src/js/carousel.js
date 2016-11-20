@@ -1,4 +1,17 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./mediaquery",
+			"./touch"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -32,9 +45,29 @@
 	function construct(data) {
 		var i;
 
+		data.didPan = false;
+
+		data.carouselClasses = [
+			RawClasses.base,
+			data.theme,
+			data.customClass,
+			(data.rtl ? RawClasses.rtl : RawClasses.ltr)
+		];
+
 		data.maxWidth = (data.maxWidth === Infinity ? "100000px" : data.maxWidth);
 		data.mq       = "(min-width:" + data.minWidth + ") and (max-width:" + data.maxWidth + ")";
-		data.mqGuid   = RawClasses.base + "__" + (GUID++);
+
+		data.customControls   = ($.type(data.controls) === "object" && data.controls.previous && data.controls.next);
+		data.customPagination = ($.type(data.pagination) === "string");
+
+		data.id = this.attr("id");
+
+		if (data.id) {
+			data.ariaId = data.id;
+		} else {
+			data.ariaId = data.rawGuid;
+			this.attr("id", data.ariaId);
+		}
 
 		// Legacy browser support
 		if (!Formstone.support.transform) {
@@ -43,23 +76,37 @@
 
 		// Build controls and pagination
 		var controlsHtml = '',
-			paginationHtml = '';
+			paginationHtml = '',
+			controlPrevClasses = [RawClasses.control, RawClasses.control_previous].join(" "),
+			controlNextClasses = [RawClasses.control, RawClasses.control_next].join(" ");
 
-		if (data.controls) {
-			controlsHtml += '<div class="' + RawClasses.controls + '">';
-			controlsHtml += '<button type="button" class="' + [RawClasses.control, RawClasses.control_previous].join(" ")+ '">' + data.labels.previous + '</button>';
-			controlsHtml += '<button type="button" class="' + [RawClasses.control, RawClasses.control_next].join(" ")+ '">' + data.labels.next + '</button>';
+		if (data.controls && !data.customControls) {
+			controlsHtml += '<div class="' + RawClasses.controls + '" aria-label="carousel controls" aria-controls="' + data.ariaId + '">';
+			controlsHtml += '<button type="button" class="' + controlPrevClasses + '" aria-label="' + data.labels.previous + '">' + data.labels.previous + '</button>';
+			controlsHtml += '<button type="button" class="' + controlNextClasses + '" aria-label="' + data.labels.next + '">' + data.labels.next + '</button>';
 			controlsHtml += '</div>';
 		}
 
-		if (data.pagination) {
-			paginationHtml += '<div class="' + RawClasses.pagination + '">';
+		if (data.pagination && !data.customPagination) {
+			paginationHtml += '<div class="' + RawClasses.pagination + '" aria-label="carousel pagination" aria-controls="' + data.ariaId + '" role="navigation">';
 			paginationHtml += '</div>';
 		}
 
+		if (data.autoHeight) {
+			data.carouselClasses.push(RawClasses.auto_height);
+		}
+
+		if (data.contained) {
+			data.carouselClasses.push(RawClasses.contained);
+		}
+
+		if (data.single) {
+			data.carouselClasses.push(RawClasses.single);
+		}
+
 		// Modify dom
-		this.addClass( [RawClasses.base, data.customClass].join(" ") )
-			.wrapInner('<div class="' + RawClasses.wrapper + '"><div class="' + RawClasses.container + '"><div class="' + RawClasses.canister + '"></div></div></div>')
+		this.addClass( data.carouselClasses.join(" ") )
+			.wrapInner('<div class="' + RawClasses.wrapper + '" aria-live="polite"><div class="' + RawClasses.container + '"><div class="' + RawClasses.canister + '"></div></div></div>')
 			.append(controlsHtml)
 			.wrapInner('<div class="' + RawClasses.viewport + '"></div>')
 			.append(paginationHtml);
@@ -67,22 +114,56 @@
 		data.$viewport           = this.find(Classes.viewport).eq(0);
 		data.$container          = this.find(Classes.container).eq(0);
 		data.$canister           = this.find(Classes.canister).eq(0);
-		data.$controls           = this.find(Classes.controls).eq(0);
 		data.$pagination         = this.find(Classes.pagination).eq(0);
-		data.$items              = data.$canister.children().addClass(RawClasses.item);
-		data.$controlItems       = data.$controls.find(Classes.control);
-		data.$paginationItems    = data.$pagination.find(Classes.page);
-		data.$images             = data.$canister.find("img");
+
+		data.$controlPrevious = data.$controlNext = $('');
+
+		if (data.customControls) {
+			data.$controls        = $(data.controls.container).addClass( [RawClasses.controls, RawClasses.controls_custom].join(" ") );
+			data.$controlPrevious = $(data.controls.previous).addClass(controlPrevClasses);
+			data.$controlNext     = $(data.controls.next).addClass(controlNextClasses);
+		} else {
+			data.$controls        = this.find(Classes.controls).eq(0);
+			data.$controlPrevious = data.$controls.find(Classes.control_previous);
+			data.$controlNext     = data.$controls.find(Classes.control_next);
+		}
+
+		data.$controlItems = data.$controlPrevious.add(data.$controlNext);
+
+		if (data.customPagination) {
+			data.$pagination = $(data.pagination).addClass( [RawClasses.pagination] );
+		}
+
+		data.$paginationItems = data.$pagination.find(Classes.page);
 
 		data.index           = 0;
 		data.enabled         = false;
 		data.leftPosition    = 0;
-		data.totalImages     = data.$images.length;
 		data.autoTimer       = null;
+		data.resizeTimer     = null;
 
+		// live query for linked to avoid missing new elements
+		var linked      = this.data(Namespace + "-linked");
+		data.linked     = linked ? '[data-' + Namespace + '-linked="' + linked + '"]' : false;
+
+		// force paged if linked, keeps counts accurate
+		if (data.linked) {
+			data.paged = true;
+		}
+
+		// live query for controlled to avoid missing new elements
+		var subordinate      = this.data(Namespace + "-controller-for") || '';
+		data.$subordinate    = $(subordinate);
+
+		if (data.$subordinate.length) {
+			data.controller = true;
+		}
+
+		// Responsive count handling
 		if ($.type(data.show) === "object") {
-			var show = data.show,
-				keys = [];
+			var show     = data.show,
+				cache    = [],
+				keys     = [];
 
 			for (i in show) {
 				if (show.hasOwnProperty(i)) {
@@ -91,20 +172,24 @@
 			}
 
 			keys.sort(Functions.sortAsc);
-			data.show = {};
 
 			for (i in keys) {
 				if (keys.hasOwnProperty(i)) {
-					data.show[ keys[i] ] = {
-						width: parseInt( keys[i] ),
-						count: show[ keys[i] ]
-					};
+					cache.push({
+						width    : parseInt( keys[i] ),
+						count    : show[ keys[i] ],
+						mq       : window.matchMedia( "(min-width: " + parseInt( keys[i] ) + "px)" )
+					});
 				}
 			}
+
+			data.show = cache;
 		}
 
+		cacheValues(data);
+
 		// Media Query support
-		$.mediaquery("bind", data.mqGuid, data.mq, {
+		$.fsMediaquery("bind", data.rawGuid, data.mq, {
 			enter: function() {
 				enable.call(data.$el, data);
 			},
@@ -113,27 +198,10 @@
 			}
 		});
 
-		// Watch Images
-		if (data.totalImages > 0) {
-			data.loadedImages = 0;
-			for (i = 0; i < data.totalImages; i++) {
-				var $img = data.$images.eq(i);
-				$img.one(Events.load, data, onImageLoad);
-
-				if ($img[0].complete || $img[0].height) {
-					$img.trigger(Events.load);
-				}
-			}
-		}
-
-		// Auto timer
-		if (data.autoAdvance) {
-			data.autoTimer = Functions.startTimer(data.autoTimer, data.autoTime, function() {
-				autoAdvance(data);
-			}, true);
-		}
-
 		cacheInstances();
+
+		data.carouselClasses.push(RawClasses.enabled);
+		data.carouselClasses.push(RawClasses.animated);
 	}
 
 	/**
@@ -145,22 +213,45 @@
 
 	function destruct(data) {
 		Functions.clearTimer(data.autoTimer);
+		Functions.clearTimer(data.resizeTimer);
 
 		disable.call(this, data);
 
-		$.mediaquery("unbind", data.mqGuid, data.mq);
+		$.fsMediaquery("unbind", data.rawGuid);
 
-		data.$items.removeClass( [RawClasses.item, RawClasses.visible].join(" ") )
-				   .unwrap().unwrap();
-
-		if (data.pagination) {
-			data.$pagination.remove();
+		if (data.id !== data.ariaId) {
+			this.removeAttr("id");
 		}
-		if (data.controls) {
+
+		data.$controlItems.removeClass( [Classes.control, RawClasses.control_previous, Classes.control_next, Classes.visible].join(" ") )
+			.off(Events.namespace);
+
+		data.$images.off(Events.namespace);
+		data.$canister.fsTouch("destroy");
+
+		data.$items.removeClass( [RawClasses.item, RawClasses.visible, Classes.item_previous, Classes.item_next].join(" ") )
+				.unwrap()
+				.unwrap()
+				.unwrap()
+				.unwrap();
+
+		if (data.controls && !data.customControls) {
 			data.$controls.remove();
 		}
 
-		this.removeClass( [RawClasses.base, RawClasses.enabled, RawClasses.animated, data.customClass].join(" ") );
+		if (data.customControls) {
+			data.$controls.removeClass( [RawClasses.controls, RawClasses.controls_custom, RawClasses.visible ].join(" ") );
+		}
+
+		if (data.pagination && !data.customPagination) {
+			data.$pagination.remove();
+		}
+
+		if (data.customPagination) {
+			data.$pagination.html("").removeClass( [ RawClasses.pagination, RawClasses.visible ].join(" ") );
+		}
+
+		this.removeClass(data.carouselClasses.join(" "));
 
 		cacheInstances();
 	}
@@ -178,22 +269,26 @@
 
 			data.enabled = false;
 
+			data.$subordinate.off(Events.update);
+
 			this.removeClass( [RawClasses.enabled, RawClasses.animated].join(" ") )
 				.off(Events.namespace);
 
-			data.$canister.touch("destroy")
+			data.$canister.fsTouch("destroy")
 						  .off(Events.namespace)
 						  .attr("style", "")
 						  .css(TransitionProperty, "none");
 
 			data.$items.css({
-				width: "",
+				width:  "",
 				height: ""
-			});
+			}).removeClass( [RawClasses.visible, Classes.item_previous, Classes.item_next].join(" ") );
 
-			data.$controls.removeClass(RawClasses.visible);
-			data.$pagination.removeClass(RawClasses.visible)
-							.html("");
+			data.$images.off(Events.namespace);
+			data.$controlItems.off(Events.namespace);
+			data.$pagination.html("").off(Events.namespace);
+
+			hideControls(data);
 
 			if (data.useMargin) {
 				data.$canister.css({
@@ -218,11 +313,17 @@
 		if (!data.enabled) {
 			data.enabled = true;
 
-			this.addClass(RawClasses.enabled)
-				.on(Events.clickTouchStart, Classes.control, data, onAdvance)
-				.on(Events.clickTouchStart, Classes.page, data, onSelect);
+			this.addClass(RawClasses.enabled);
 
-			data.$canister.touch({
+			data.$controlItems.on(Events.click, data, onAdvance);
+			data.$pagination.on(Events.click, Classes.page, data, onSelect);
+
+			data.$items.on(Events.click, data, onItemClick);
+			data.$subordinate.on(Events.update, data, onSubordinateUpdate);
+
+			onSubordinateUpdate({ data: data }, 0);
+
+			data.$canister.fsTouch({
 				axis: "x",
 				pan: true,
 				swipe: true
@@ -230,7 +331,20 @@
 			  .on(Events.pan, data, onPan)
 			  .on(Events.panEnd, data, onPanEnd)
 			  .on(Events.swipe, data, onSwipe)
+			  .on(Events.focusIn, data, onItemFocus)
 			  .css(TransitionProperty, "");
+
+			cacheValues(data);
+
+			// Watch Images
+			data.$images.on(Events.load, data, onImageLoad);
+
+			// Auto timer
+			if (data.autoAdvance) {
+				data.autoTimer = Functions.startTimer(data.autoTimer, data.autoTime, function() {
+					autoAdvance(data);
+				}, true);
+			}
 
 			resizeInstance.call(this, data);
 		}
@@ -252,47 +366,64 @@
 
 	function resizeInstance(data) {
 		if (data.enabled) {
-			var i,
-				j,
+			var h, i, j, k, w,
 				$items,
 				$first,
-				height;
+				width,
+				height,
+				left;
 
 			data.count = data.$items.length;
 
 			if (data.count < 1) { // avoid empty carousels
+				hideControls(data);
+				data.$canister.css({
+					height: ""
+				});
+
 				return;
 			}
 
 			this.removeClass(RawClasses.animated);
 
-			// data.viewportWidth  = data.$viewport.outerWidth(false);
 			data.containerWidth = data.$container.outerWidth(false);
 
 			data.visible   = calculateVisible(data);
 			data.perPage   = data.paged ? 1 : data.visible;
 
-			data.itemMargin = parseInt(data.$items.eq(0).css("marginRight")) + parseInt(data.$items.eq(0).css("marginLeft"));
+			data.itemMarginLeft  = parseInt(data.$items.eq(0).css("marginLeft"));
+			data.itemMarginRight = parseInt(data.$items.eq(0).css("marginRight"));
+
+			data.itemMargin = data.itemMarginLeft + data.itemMarginRight;
+
+			if (isNaN(data.itemMargin)) {
+				data.itemMargin = 0;
+			}
+
 			data.itemWidth  = (data.containerWidth - (data.itemMargin * (data.visible - 1))) / data.visible;
 			data.itemHeight = 0;
 
 			data.pageWidth = data.paged ? data.itemWidth : data.containerWidth;
 			data.pageCount = Math.ceil(data.count / data.perPage);
 
+			data.canisterWidth = data.single ? data.containerWidth : ((data.pageWidth + data.itemMargin) * data.pageCount);
 			data.$canister.css({
-				width: ((data.pageWidth + data.itemMargin) * data.pageCount)
+				width:  (data.matchWidth) ? data.canisterWidth : 1000000,
+				height: ""
 			});
 
 			data.$items.css({
-				width: data.itemWidth,
+				width:  (data.matchWidth) ? data.itemWidth : "",
 				height: ""
-			}).removeClass(RawClasses.visible);
+			}).removeClass( [RawClasses.visible, RawClasses.item_previous, RawClasses.item_next].join(" ") );
 
 			// initial page
 			data.pages = [];
 
 			for (i = 0, j = 0; i < data.count; i += data.perPage) {
 				$items = data.$items.slice(i, i + data.perPage);
+				width = 0;
+				height = 0;
 
 				if ($items.length < data.perPage) {
 					if (i === 0) {
@@ -302,12 +433,28 @@
 					}
 				}
 
-				$first = $items.eq(0);
-				height = $first.outerHeight();
+				$first = data.rtl ? $items.eq( $items.length - 1 ) : $items.eq(0);
+				left   = $first.position().left;
+
+				// if (data.autoHeight) {
+					for (k = 0; k < $items.length; k++) {
+						w = $items.eq(k).outerWidth(true);
+						h = $items.eq(k).outerHeight();
+
+						width += w;
+
+						if (h > height) {
+							height = h;
+						}
+					}
+				// } else {
+				// 	height = $first.outerHeight();
+				// }
 
 				data.pages.push({
-					left      : $first.position().left,
+					left      : data.rtl ? left - (data.canisterWidth - width) : left,
 					height    : height,
+					width     : width,
 					$items    : $items
 				});
 
@@ -322,10 +469,18 @@
 				data.pageCount -= (data.count % data.visible);
 			}
 
+			if (data.pageCount <= 0) {
+				data.pageCount = 1;
+			}
+
 			data.maxMove = -data.pages[ data.pageCount - 1 ].left;
 
-			// auto height
+			// auto / match height
 			if (data.autoHeight) {
+				data.$canister.css({
+					height: data.pages[0].height
+				});
+			} else if (data.matchHeight) {
 				data.$items.css({
 					height: data.itemHeight
 				});
@@ -340,13 +495,11 @@
 
 			// update pagination
 			if (data.pageCount <= 1) {
-				data.$controls.removeClass(RawClasses.visible);
-				data.$pagination.removeClass(RawClasses.visible);
+				hideControls(data);
 			} else {
-				data.$controls.addClass(RawClasses.visible);
-				data.$pagination.addClass(RawClasses.visible);
+				showControls(data);
 			}
-			data.$paginationItems = data.$el.find(Classes.page);
+			data.$paginationItems = data.$pagination.find(Classes.page);
 
 			positionCanister(data, data.index, false);
 
@@ -354,6 +507,21 @@
 				data.$el.addClass(RawClasses.animated);
 			}, 5);
 		}
+	}
+
+	/**
+	 * @method private
+	 * @name cacheValues
+	 * @description Caches internal values after item change
+	 * @param data [object] "Instance data"
+	 */
+
+	function cacheValues(data) {
+		// Cache vaules
+		data.$items      = data.$canister.children().not(":hidden").addClass(RawClasses.item);
+		data.$images     = data.$canister.find("img");
+
+		data.totalImages = data.$images.length;
 	}
 
 	/**
@@ -372,50 +540,99 @@
 
 	function resetInstance(data) {
 		if (data.enabled) {
-			data.$items = data.$canister.children().addClass(RawClasses.item);
-
-			resizeInstance.call(this, data);
+			updateItems.call(this, data, false);
 		}
 	}
 
 	/**
 	 * @method
-	 * @name jump
-	 * @description Jump instance of plugin to specific page
-	 * @example $(".target").carousel("jump", 1);
+	 * @name update
+	 * @description Updates carousel items
+	 * @example $(".target").carousel("update", "...");
 	 */
 
 	/**
 	 * @method private
-	 * @name jumpToItem
+	 * @name updateItems
+	 * @description Updates carousel items for each instance
+	 * @param data [object] "Instance data"
+	 * @param html [string] "New carousel contents"
+	 */
+
+	function updateItems(data, html) {
+		data.$images.off(Events.namespace);
+
+		if (html !== false) {
+			data.$canister.html(html);
+		}
+
+		data.index = 0;
+
+		cacheValues(data);
+
+		resizeInstance.call(this, data);
+	}
+
+	/**
+	 * @method
+	 * @name jumpPage
+	 * @description Jump instance of plugin to specific page
+	 * @example $(".target").carousel("jumpPage", 1);
+	 * @param index [int] "New index"
+	 * @param silent [boolean] "Flag to prevent triggering update event"
+	 */
+	/**
+	 * @method
+	 * @name jump
+	 * @description Jump instance of plugin to specific page; Alias of `jumpPage`
+	 * @example $(".target").carousel("jump", 1);
+	 * @param index [int] "New index"
+	 * @param silent [boolean] "Flag to prevent triggering update event"
+	 */
+
+	/**
+	 * @method private
+	 * @name jumpPage
 	 * @description Jump instance of plugin to specific page
 	 * @param data [object] "Instance data"
 	 * @param index [int] "New index"
+	 * @param silent [boolean] ""
+	 * @param animated [boolean] ""
 	 */
 
-	function jumpToItem(data, index) {
+	function jumpPage(data, index, silent, fromLinked, animated) {
 		if (data.enabled) {
 			Functions.clearTimer(data.autoTimer);
 
-			positionCanister(data, index - 1);
+			if (typeof animated === "undefined") {
+				animated = true;
+			}
+
+			positionCanister(data, index - 1, animated, silent, fromLinked);
 		}
 	}
 
 	/**
 	 * @method
+	 * @name previousPage
+	 * @description Move to the previous page
+	 * @example $(".target").carousel("previousPage");
+	 */
+	/**
+	 * @method
 	 * @name previous
-	 * @description Move to the previous item
+	 * @description Move to the previous page; Alias of `previousPage`
 	 * @example $(".target").carousel("previous");
 	 */
 
 	/**
 	 * @method private
-	 * @name previousItem
-	 * @description Move to next item
+	 * @name previousPage
+	 * @description Move to previous page
 	 * @param data [object] "Instance data"
 	 */
 
-	function previousItem(data) {
+	function previousPage(data) {
 		var index = data.index - 1;
 
 		if (data.infinite && index < 0) {
@@ -427,19 +644,25 @@
 
 	/**
 	 * @method
+	 * @name nextPage
+	 * @description Move to next page
+	 * @example $(".target").carousel("nextPage");
+	 */
+	/**
+	 * @method
 	 * @name next
-	 * @description Move to next item
-	 * @param data [object] "Instance data"
+	 * @description Move to next page; Alias of `nextPage`
+	 * @example $(".target").carousel("next");
 	 */
 
 	/**
 	 * @method private
-	 * @name nextItem
-	 * @description Move to next item
-	 * @example $(".target").carousel("next");
+	 * @name nextPage
+	 * @description Move to next page
+	 * @param data [object] "Instance data"
 	 */
 
-	function nextItem(data) {
+	function nextPage(data) {
 		var index = data.index + 1;
 
 		if (data.infinite && index >= data.pageCount) {
@@ -447,6 +670,45 @@
 		}
 
 		positionCanister(data, index);
+	}
+
+
+	/**
+	 * @method
+	 * @name jumpItem
+	 * @description Jump instance of plugin to specific item
+	 * @example $(".target").carousel("jumpItem", 1);
+	 * @param index [int] "New item index"
+	 * @param silent [boolean] "Flag to prevent triggering update event"
+	 */
+
+	/**
+	 * @method private
+	 * @name jumpItem
+	 * @description Jump instance of plugin to specific page
+	 * @param data [object] "Instance data"
+	 * @param index [int] "New index"
+	 * @param silent [boolean] ""
+	 * @param animated [boolean] ""
+	 */
+
+	function jumpItem(data, index, silent, fromLinked, animated) {
+		if (data.enabled) {
+			Functions.clearTimer(data.autoTimer);
+
+			var $active = data.$items.eq(index - 1);
+
+			if (typeof animated === "undefined") {
+				animated = true;
+			}
+
+			for (var i = 0; i < data.pageCount; i++) {
+				if (data.pages[i].$items.is($active)) {
+					positionCanister(data, i, animated, silent, fromLinked);
+					break;
+				}
+			}
+		}
 	}
 
 	/**
@@ -459,11 +721,9 @@
 	function onImageLoad(e) {
 		var data = e.data;
 
-		data.loadedImages++;
-
-		if (data.loadedImages === data.totalImages) {
+		data.resizeTimer = Functions.startTimer(data.resizeTimer, 20, function() {
 			resizeInstance.call(data.$el, data);
-		}
+		});
 	}
 
 	/**
@@ -525,7 +785,7 @@
 	 * @param index [int] "Item index"
 	 */
 
-	function positionCanister(data, index, animate) {
+	function positionCanister(data, index, animate, silent, fromLinked) {
 		if (index < 0) {
 			index = (data.infinite) ? data.pageCount-1 : 0;
 		}
@@ -533,16 +793,15 @@
 			index = (data.infinite) ? 0 : data.pageCount-1;
 		}
 
+		if (data.count < 1) {
+			return;
+		}
+
 		if (data.pages[index]) {
 			data.leftPosition = -data.pages[index].left;
 		}
 
-		if (data.leftPosition < data.maxMove) {
-			data.leftPosition = data.maxMove;
-		}
-		if (data.leftPosition > 0 || isNaN(data.leftPosition)) {
-			data.leftPosition = 0;
-		}
+		data.leftPosition = checkPosition(data, data.leftPosition);
 
 		if (data.useMargin) {
 			data.$canister.css({
@@ -563,16 +822,61 @@
 		}
 
 		// Update classes
-		data.$items.removeClass(RawClasses.visible);
-		data.pages[index].$items.addClass(RawClasses.visible);
+		data.$items.removeClass( [RawClasses.visible, RawClasses.item_previous, RawClasses.item_next].join(" ") );
 
-		if (animate !== false && index !== data.index && (data.infinite || (index > -1 && index < data.pageCount)) ) {
+		for (var i = 0, count = data.pages.length; i < count; i++) {
+			if (i === index) {
+				data.pages[i].$items.addClass(RawClasses.visible).attr("aria-hidden", "false");
+			} else {
+				data.pages[i].$items.not( data.pages[index].$items ).addClass( (i < index) ? RawClasses.item_previous : RawClasses.item_next ).attr("aria-hidden", "true");
+			}
+		}
+
+		// Auto Height
+		if (data.autoHeight) {
+			data.$canister.css({
+				height: data.pages[index].height
+			});
+		}
+
+		if (animate !== false && silent !== true && index !== data.index && (data.infinite || (index > -1 && index < data.pageCount)) ) {
 			data.$el.trigger(Events.update, [ index ]);
 		}
 
 		data.index = index;
 
+		// Linked
+		if (data.linked && fromLinked !== true) {
+			$(data.linked).not(data.$el)[NamespaceClean]("jumpPage", data.index + 1, true, true);
+		}
+
 		updateControls(data);
+	}
+
+	/**
+	 * @method private
+	 * @name hideControls
+	 * @description Hides instance controls
+	 * @param data [object] "Instance data"
+	 */
+
+	function hideControls(data) {
+		data.$controls.removeClass(RawClasses.visible);
+		data.$controlItems.removeClass(RawClasses.visible);
+		data.$pagination.removeClass(RawClasses.visible);
+	}
+
+	/**
+	 * @method private
+	 * @name showControls
+	 * @description Shows instance controls
+	 * @param data [object] "Instance data"
+	 */
+
+	function showControls(data) {
+		data.$controls.addClass(RawClasses.visible);
+		data.$controlItems.addClass(RawClasses.visible);
+		data.$pagination.addClass(RawClasses.visible);
 	}
 
 	/**
@@ -595,9 +899,9 @@
 			data.$controlItems.addClass(RawClasses.visible);
 
 			if (data.index <= 0) {
-				data.$controlItems.filter(Classes.control_previous).removeClass(RawClasses.visible);
-			} else if (data.index >= data.pageCount || data.leftPosition === data.maxMove) {
-				data.$controlItems.filter(Classes.control_next).removeClass(RawClasses.visible);
+				data.$controlPrevious.removeClass(RawClasses.visible);
+			} else if (data.index >= data.pageCount - 1 || (!data.single && data.leftPosition === data.maxMove)) {
+				data.$controlNext.removeClass(RawClasses.visible);
 			}
 		}
 	}
@@ -611,16 +915,30 @@
 	 */
 
 	function calculateVisible(data) {
-		if ($.type(data.show) === "object") {
+		var show = 1;
+
+		if (data.single) {
+			return show;
+		} else if ($.type(data.show) === "array") {
 			for (var i in data.show) {
-				if (data.show.hasOwnProperty(i) && Formstone.windowWidth >= data.show[i].width) {
-					return (data.fill && data.count < data.show[i].count) ? data.count : data.show[i].count;
+				if (data.show.hasOwnProperty(i)) {
+					if (Formstone.support.nativeMatchMedia) {
+						if (data.show[i].mq.matches) {
+							show = data.show[i].count;
+						}
+					} else {
+						// ie8 fallback, grab the first breakpoint that's large enough
+						if (data.show[i].width < Formstone.fallbackWidth) {
+							show = data.show[i].count;
+						}
+					}
 				}
 			}
-			return 1;
+		} else {
+			show = data.show;
 		}
 
-		return (data.fill && data.count < data.show) ? data.count : data.show;
+		return (data.fill && data.count < show) ? data.count : show;
 	}
 
 	/**
@@ -630,19 +948,34 @@
 	 * @param e [object] "Event data"
 	 */
 
-	function onPanStart(e) {
+	function onPanStart(e, fromLinked) {
 		var data = e.data;
 
-		if (data.useMargin) {
-			data.leftPosition = parseInt(data.$canister.css("marginLeft"));
-		} else {
-			var matrix = data.$canister.css(TransformProperty).split(",");
-			data.leftPosition = parseInt(matrix[4]); // ?
+		Functions.clearTimer(data.autoTimer);
+
+		if (!data.single) {
+			if (data.useMargin) {
+				data.leftPosition = parseInt(data.$canister.css("marginLeft"));
+			} else {
+				var matrix = data.$canister.css(TransformProperty).split(",");
+				data.leftPosition = parseInt(matrix[4]); // ?
+			}
+
+			data.$canister.css(TransitionProperty, "none");
+
+			onPan(e);
+
+			// Linked
+			if (data.linked && fromLinked !== true) {
+				var percent = e.deltaX / data.pageWidth;
+
+				if (data.rtl) {
+					percent *= -1;
+				}
+
+				$(data.linked).not(data.$el)[NamespaceClean]("panStart", percent);
+			}
 		}
-
-		data.$canister.css(TransitionProperty, "none");
-
-		onPan(e);
 
 		data.isTouching = true;
 	}
@@ -654,24 +987,30 @@
 	 * @param e [object] "Event data"
 	 */
 
-	function onPan(e) {
+	function onPan(e, fromLinked) {
 		var data = e.data;
 
-		data.touchLeft = data.leftPosition + e.deltaX;
+		if (!data.single) {
+			data.touchLeft = checkPosition(data, data.leftPosition + e.deltaX);
 
-		if (data.touchLeft > 0) {
-			data.touchLeft = 0;
-		}
-		if (data.touchLeft < data.maxMove) {
-			data.touchLeft = data.maxMove;
-		}
+			if (data.useMargin) {
+				data.$canister.css({
+					marginLeft: data.touchLeft
+				});
+			} else {
+				data.$canister.css(TransformProperty, "translateX(" + data.touchLeft + "px)");
+			}
 
-		if (data.useMargin) {
-			data.$canister.css({
-				marginLeft: data.touchLeft
-			});
-		} else {
-			data.$canister.css(TransformProperty, "translateX(" + data.touchLeft + "px)");
+			// Linked
+			if (data.linked && fromLinked !== true) {
+				var percent = e.deltaX / data.pageWidth;
+
+				if (data.rtl) {
+					percent *= -1;
+				}
+
+				$(data.linked).not(data.$el)[NamespaceClean]("pan", percent);
+			}
 		}
 	}
 
@@ -682,11 +1021,131 @@
 	 * @param e [object] "Event data"
 	 */
 
-	function onPanEnd(e) {
-		var data = e.data,
-			index = (e.deltaX > -50 && e.deltaX < 50) ? data.index : data.index + ((e.directionX === "left") ? 1 : -1);
+	function onPanEnd(e, fromLinked) {
+		var data       = e.data,
+			delta      = Math.abs(e.deltaX),
+			increment  = getIncrement(data, e),
+			index      = false;
+
+		data.didPan = false;
+
+		if (!data.single) {
+			var i, count,
+				left = Math.abs(data.touchLeft),
+				page = false,
+				dir  = (data.rtl) ? "right" : "left";
+
+			if (e.directionX === dir) {
+				// Left (RTL Right)
+				for (i = 0, count = data.pages.length; i < count; i++) {
+					page = data.pages[i];
+
+					if (left > Math.abs(page.left) + 20) {
+						index = i + 1;
+					}
+				}
+			} else {
+				// Right (RTL Left)
+				for (i = data.pages.length - 1, count = 0; i >= count; i--) {
+					page = data.pages[i];
+
+					if (left < Math.abs(page.left)) {
+						index = i - 1;
+					}
+				}
+			}
+		}
+
+		if (index === false) {
+			index = (delta < 50) ? data.index : data.index + increment;
+		}
+
+		if (index !== data.index) {
+			data.didPan = true;
+		}
+
+		// Linked
+		if (data.linked && fromLinked !== true) {
+			$(data.linked).not(data.$el)[NamespaceClean]("panEnd", index);
+		}
 
 		endTouch(data, index);
+	}
+
+	/**
+	 * @method private
+	 * @name linkedPanStart
+	 * @description Handles linked pan start
+	 * @param data [object] "Instance data"
+	 * @param percent [float] "Percentage moved"
+	 */
+
+	function linkedPanStart(data, percent) {
+		Functions.clearTimer(data.autoTimer);
+
+		if (!data.single) {
+			if (data.rtl) {
+				percent *= -1;
+			}
+
+			if (data.useMargin) {
+				data.leftPosition = parseInt(data.$canister.css("marginLeft"));
+			} else {
+				var matrix = data.$canister.css(TransformProperty).split(",");
+				data.leftPosition = parseInt(matrix[4]); // ?
+			}
+
+			data.$canister.css(TransitionProperty, "none");
+
+			var e = {
+				data: data,
+				deltaX: (data.pageWidth * percent)
+			};
+
+			onPan(e, true);
+		}
+
+		data.isTouching = true;
+	}
+
+	/**
+	 * @method private
+	 * @name linkedPan
+	 * @description Handles linked pan
+	 * @param data [object] "Instance data"
+	 * @param percent [float] "Percentage moved"
+	 */
+
+	function linkedPan(data, percent) {
+		if (!data.single) {
+			if (data.rtl) {
+				percent *= -1;
+			}
+
+			var delta = (data.pageWidth * percent);
+
+			data.touchLeft = checkPosition(data, data.leftPosition + delta);
+
+			if (data.useMargin) {
+				data.$canister.css({
+					marginLeft: data.touchLeft
+				});
+			} else {
+				data.$canister.css(TransformProperty, "translateX(" + data.touchLeft + "px)");
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name linkedPanEnd
+	 * @description Handles linked pan end
+	 * @param data [object] "Instance data"
+	 * @param index [int] "New Index"
+	 */
+
+	function linkedPanEnd(data, index) {
+		endTouch(data, index, true);
 	}
 
 	/**
@@ -696,11 +1155,34 @@
 	 * @param e [object] "Event data"
 	 */
 
-	function onSwipe(e) {
-		var data = e.data,
-			index = data.index + ((e.directionX === "left") ? 1 : -1);
+	function onSwipe(e, fromLinked) {
+		var data      = e.data,
+			increment = getIncrement(data, e),
+			index     = data.index + increment;
+
+		// Linked
+		if (data.linked && fromLinked !== true) {
+			$(data.linked).not(data.$el)[NamespaceClean]("swipe", e.directionX);
+		}
 
 		endTouch(data, index);
+	}
+
+	/**
+	 * @method private
+	 * @name linkedSwipe
+	 * @description Handles swipe event
+	 * @param data [object] "Instance data"
+	 * @param direction [string] "Swipe direction"
+	 */
+
+	function linkedSwipe(data, direction) {
+		var e = {
+			data:      data,
+			directionX: direction
+		};
+
+		onSwipe(e, true);
 	}
 
 	/**
@@ -720,10 +1202,140 @@
 	}
 
 	/**
+	 * @method private
+	 * @name onItemClick
+	 * @description Handles click to item
+	 * @param e [object] "Event data"
+	 */
+
+	function onItemClick(e) {
+		var data    = e.data,
+			$target = $(e.currentTarget);
+
+		if (!data.didPan) {
+			$target.trigger(Events.itemClick);
+
+			if (data.controller) {
+				var index = data.$items.index($target);
+
+				onSubordinateUpdate(e, index);
+
+				data.$subordinate[NamespaceClean]("jumpPage", index + 1, true);
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name onItemFocus
+	 * @description Handles focus to item/element in item
+	 * @param e [object] "Event data"
+	 */
+
+	function onItemFocus(e) {
+		var data = e.data;
+
+		if (data.enabled) {
+			Functions.clearTimer(data.autoTimer);
+
+			data.$container.scrollLeft(0);
+
+			var $target = $(e.target),
+				$active;
+
+			if ( $target.hasClass(RawClasses.item) ) {
+				$active = $target;
+			} else if ($target.parents(Classes.item).length) {
+				$active = $target.parents(Classes.item).eq(0);
+			}
+
+			for (var i = 0; i < data.pageCount; i++) {
+				if (data.pages[i].$items.is($active)) {
+					positionCanister(data, i);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name onSubordinateUpdate
+	 * @description Handles update from subordinate
+	 * @param e [object] "Event data"
+	 * @param index [int] "Index"
+	 */
+
+	function onSubordinateUpdate(e, index) {
+		var data = e.data;
+
+		if (data.controller) {
+			var $active = data.$items.eq(index);
+
+			data.$items.removeClass(RawClasses.active);
+			$active.addClass(RawClasses.active);
+
+			for (var i = 0; i < data.pageCount; i++) {
+				if (data.pages[i].$items.is($active)) {
+					positionCanister(data, i, true, true);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name checkPosition
+	 * @description Checks if left pos is in range
+	 * @param data [object] "Event data"
+	 * @param e [object] "Event data"
+	 * @return [int] "Corrected left position"
+	 */
+
+	function checkPosition(data, pos) {
+		if (isNaN(pos)) {
+			pos = 0;
+		} else if (data.rtl) {
+			if (pos > data.maxMove) {
+				pos = data.maxMove;
+			}
+			if (pos < 0) {
+				pos = 0;
+			}
+		} else {
+			if (pos < data.maxMove) {
+				pos = data.maxMove;
+			}
+			if (pos > 0) {
+				pos = 0;
+			}
+		}
+
+		return pos;
+	}
+
+	/**
+	 * @method private
+	 * @name getIncrement
+	 * @description Returns touch increment
+	 * @param data [object] "Instance data"
+	 * @param e [object] "Event data"
+	 * @return [int] "Target direction"
+	 */
+
+	function getIncrement(data, e) {
+		return data.rtl ? ((e.directionX === "right") ? 1 : -1) : ((e.directionX === "left") ? 1 : -1);
+	}
+
+	/**
 	 * @plugin
 	 * @name Carousel
 	 * @description A jQuery plugin for simple content carousels.
 	 * @type widget
+	 * @main carousel.js
+	 * @main carousel.css
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency mediaquery.js
 	 * @dependency touch.js
@@ -735,19 +1347,25 @@
 			/**
 			 * @options
 			 * @param autoAdvance [boolean] <false> "Flag to auto advance items"
-			 * @param autoHeight [boolean] <false> "Flag to auto-size items"
+			 * @param autoHeight [boolean] <false> "Flag to adjust carousel height to visible item(s)"
 			 * @param autoTime [int] <8000> "Auto advance time"
-			 * @param controls [boolean] <true> "Flag to draw controls"
+			 * @param contained [boolean] <true> "Flag for 'overflow: visible'"
+			 * @param controls [boolean or object] <true> "Flag to draw controls OR object containing container, next and previous control selectors (Must be fully qualified selectors)"
 			 * @param customClass [string] <''> "Class applied to instance"
 			 * @param fill [boolean] <false> "Flag to fill viewport if item count is less then show count"
 			 * @param infinite [boolean] <false> "Flag for looping items"
 			 * @param labels.next [string] <'Next'> "Control text"
 			 * @param labels.previous [string] <'Previous'> "Control text"
+			 * @param matchHeight [boolean] <false> "Flag to match item heights"
+			 * @param matchWidth [boolean] <true> "Flag to match item widths; Requires CSS widths if false"
 			 * @param maxWidth [string] <'Infinity'> "Width at which to auto-disable plugin"
 			 * @param minWidth [string] <'0'> "Width at which to auto-disable plugin"
 			 * @param paged [boolean] <false> "Flag for paged items"
-			 * @param pagination [boolean] <true> "Flag to draw pagination"
+			 * @param pagination [boolean or string] <true> "Flag to draw pagination OR string containing pagination target selector (Must be fully qualified selector)"
+			 * @param rtl [boolean] <false> "Right to Left display"
 			 * @param show [int / object] <1> "Items visible per page; Object for responsive counts"
+			 * @param single [boolean] <false> "Flag to display single item at a time"
+			 * @param theme [string] <"fs-light"> "Theme class name"
 			 * @param useMargin [boolean] <false> "Use margins instead of css transitions (legacy browser support)"
 			 */
 
@@ -755,6 +1373,7 @@
 				autoAdvance    : false,
 				autoHeight     : false,
 				autoTime       : 8000,
+				contained      : true,
 				controls       : true,
 				customClass    : "",
 				fill           : false,
@@ -763,22 +1382,39 @@
 					next       : "Next",
 					previous   : "Previous"
 				},
+				matchHeight    : false,
+				matchWidth     : true,
 				maxWidth       : Infinity,
 				minWidth       : '0px',
 				paged          : false,
 				pagination     : true,
+				rtl            : false,
 				show           : 1,
+				single         : false,
+				theme          : "fs-light",
 				useMargin      : false
 			},
 
 			classes: [
+				"ltr",
+				"rtl",
+
 				"viewport",
 				"wrapper",
 				"container",
 				"canister",
+
 				"item",
+				"item_previous",
+				"item_next",
+
 				"controls",
+				"controls_custom",
+
 				"control",
+				"control_previous",
+				"control_next",
+
 				"pagination",
 				"page",
 
@@ -786,22 +1422,20 @@
 				"enabled",
 				"visible",
 				"active",
-
-				"control_previous",
-				"control_next"
+				"auto_height",
+				"contained",
+				"single"
 			],
 
 			/**
 			 * @events
+			 * @event itemClick.carousel "Item clicked; Triggered on carousel item"
 			 * @event update.carousel "Carousel position updated"
 			 */
 
 			events: {
-				update      : "update",
-				panStart    : "panstart",
-				pan         : "pan",
-				panEnd      : "panend",
-				swipe       : "swipe"
+				itemClick    : "itemClick",
+				update       : "update"
 			},
 
 			methods: {
@@ -811,25 +1445,43 @@
 
 				disable       : disable,
 				enable        : enable,
-				jump          : jumpToItem,
-				previous      : previousItem,
-				next          : nextItem,
+
+				// Backwards compat?
+				jump          : jumpPage,
+				previous      : previousPage,
+				next          : nextPage,
+				// Pages
+				jumpPage      : jumpPage,
+				previousPage  : previousPage,
+				nextPage      : nextPage,
+				// Items
+				jumpItem      : jumpItem,
+
 				reset         : resetInstance,
-				resize        : resizeInstance
+				resize        : resizeInstance,
+				update        : updateItems,
+
+				panStart      : linkedPanStart,
+				pan           : linkedPan,
+				panEnd        : linkedPanEnd,
+				swipe         : linkedSwipe
 			}
 		}),
 
 		// Localize References
 
-		Classes        = Plugin.classes,
-		RawClasses     = Classes.raw,
-		Events         = Plugin.events,
-		Functions      = Plugin.functions,
-		GUID           = 0,
+		Namespace         = Plugin.namespace,
+		NamespaceClean    = Plugin.namespaceClean,
+		Classes           = Plugin.classes,
+		RawClasses        = Classes.raw,
+		Events            = Plugin.events,
+		Functions         = Plugin.functions,
 
-		$Instances     = [],
+		$Instances        = [],
 
 		TransformProperty     = Formstone.transform,
 		TransitionProperty    = Formstone.transition;
 
-})(jQuery, Formstone);
+})
+
+);

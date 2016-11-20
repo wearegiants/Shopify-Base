@@ -1,4 +1,18 @@
-;(function ($, Formstone, undefined) {
+/* global define */
+
+(function(factory) {
+	if (typeof define === "function" && define.amd) {
+		define([
+			"jquery",
+			"./core",
+			"./touch",
+			"./transition",
+			"./viewer"
+		], factory);
+	} else {
+		factory(jQuery, Formstone);
+	}
+}(function($, Formstone) {
 
 	"use strict";
 
@@ -9,8 +23,10 @@
 	 */
 
 	function setup() {
-		$Body = Formstone.$body;
+		$Body  = Formstone.$body;
 		$Locks = $("html, body");
+
+		OnLoad = Formstone.window.location.hash.replace("#", "");
 	}
 
 	/**
@@ -34,6 +50,14 @@
 
 	function construct(data) {
 		this.on(Events.click, data, buildLightbox);
+
+		var gallery = this.data(Namespace + "-gallery");
+
+		if (!OnLoaded && OnLoad && gallery === OnLoad) {
+			OnLoaded = true;
+
+			this.trigger(Events.click);
+		}
 	}
 
 	/**
@@ -61,7 +85,7 @@
 
 			// Emulate event
 
-			buildLightbox.apply(Window, [{ data: $.extend({}, {
+			buildLightbox.apply(Window, [{ data: $.extend(true, {}, {
 				$object: $target
 			}, Defaults, options || {}) }]);
 		}
@@ -76,16 +100,37 @@
 
 	function buildLightbox(e) {
 		if (!Instance) {
+			var data = e.data;
+
+			// Cache internal data
+			Instance = $.extend({}, {
+				visible            : false,
+				gallery: {
+					active         : false
+				},
+				isMobile           : (Formstone.isMobile || data.mobile),
+				isTouch            : Formstone.support.touch,
+				isAnimating        : true,
+				isZooming          : false,
+				oldContentHeight   : 0,
+				oldContentWidth    : 0,
+				metaHeight         : 0,
+				thumbnailHeight    : 0,
+				captionOpen        : false,
+				thumbnailsOpen     : false,
+				tapTimer           : null
+			}, data);
+
+			Instance.isViewer = (Instance.isMobile && data.viewer && typeof $.fn.fsViewer !== undefined);
+
 			// Check target type
-			var data           = e.data,
-				$el            = data.$el,
+			var $el            = data.$el,
 				$object        = data.$object,
 				source         = ($el && $el[0].href) ? $el[0].href || "" : "",
 				hash           = ($el && $el[0].hash) ? $el[0].hash || "" : "",
 				sourceParts    = source.toLowerCase().split(".").pop().split(/\#|\?/),
-				extension      = sourceParts[0],
 				type           = ($el) ? $el.data(Namespace + "-type") : "",
-				isImage	       = ( (type === "image") || ($.inArray(extension, data.extensions) > -1 || source.substr(0, 10) === "data:image") ),
+				isImage	       = ( (type === "image") || (source.match(data.fileTypes) || source.substr(0, 10) === "data:image") ),
 				isVideo	       = checkVideo(source),
 				isUrl	       = ( (type === "url") || (!isImage && !isVideo && source.substr(0, 4) === "http" && !hash) ),
 				isElement      = ( (type === "element") || (!isImage && !isVideo && !isUrl && (hash.substr(0, 1) === "#")) ),
@@ -97,24 +142,17 @@
 
 			// Retain default click
 			if ( !(isImage || isVideo || isUrl || isElement || isObject) ) {
+				Instance = null;
+
 				return;
 			}
 
 			// Kill event
 			Functions.killEvent(e);
 
-			// Cache internal data
-			Instance = $.extend({}, {
-				visible            : false,
-				gallery: {
-					active         : false
-				},
-				isMobile           : (Formstone.isMobile || data.mobile),
-				isTouch            : Formstone.support.touch,
-				isAnimating        : true,
-				oldContentHeight   : 0,
-				oldContentWidth    : 0
-			}, data);
+			// Viewport
+			Instance.$viewportMeta = $('meta[name="viewport"]');
+			Instance.viewportContent = (Instance.$viewportMeta.length) ? Instance.$viewportMeta.attr("content") : false;
 
 			// Double the margin
 			Instance.margin *= 2;
@@ -140,87 +178,132 @@
 				}
 			}
 
+			// Thumbnails support
+			if ( !(Instance.thumbnails && (isImage || isVideo) && Instance.gallery.active) ) {
+				Instance.thumbnails = false;
+			}
+
 			// Assemble HTML
 			var html = '';
 			if (!Instance.isMobile) {
-				html += '<div class="' + [Classes.raw.overlay, Instance.customClass].join(" ") + '"></div>';
+				html += '<div class="' + [RawClasses.overlay, Instance.theme, Instance.customClass].join(" ") + '"></div>';
 			}
 			var lightboxClasses = [
-				Classes.raw.base,
-				Classes.raw.loading,
-				Classes.raw.animating,
+				RawClasses.base,
+				RawClasses.loading,
+				RawClasses.animating,
+				Instance.theme,
 				Instance.customClass
 			];
 
 			if (Instance.fixed) {
-				lightboxClasses.push(Classes.raw.fixed);
+				lightboxClasses.push(RawClasses.fixed);
 			}
 			if (Instance.isMobile) {
-				lightboxClasses.push(Classes.raw.mobile);
+				lightboxClasses.push(RawClasses.mobile);
 			}
 			if (Instance.isTouch) {
-				lightboxClasses.push(Classes.raw.touch);
+				lightboxClasses.push(RawClasses.touch);
 			}
 			if (isUrl) {
-				lightboxClasses.push(Classes.raw.iframed);
+				lightboxClasses.push(RawClasses.iframed);
 			}
 			if (isElement || isObject) {
-				lightboxClasses.push(Classes.raw.inline);
+				lightboxClasses.push(RawClasses.inline);
+			}
+			if (Instance.thumbnails) {
+				lightboxClasses.push(RawClasses.thumbnailed);
 			}
 
-			html += '<div class="' + lightboxClasses.join(" ") + '">';
-			html += '<button type="button" class="' + Classes.raw.close + '">' + Instance.labels.close + '</button>';
-			html += '<span class="' + Classes.raw.loading_icon + '"></span>';
-			html += '<div class="' + Classes.raw.container + '">';
-			html += '<div class="' + Classes.raw.content + '">';
-			if (isImage || isVideo) {
-				html += '<div class="' + Classes.raw.tools + '">';
+			html += '<div class="' + lightboxClasses.join(" ") + '" role="dialog" aria-label="lightbox" tabindex="-1">';
+			html += '<button type="button" class="' + RawClasses.close + '">' + Instance.labels.close + '</button>';
+			html += '<span class="' + RawClasses.loading_icon + '"></span>';
+			html += '<div class="' + RawClasses.container + '">';
 
-				html += '<div class="' + Classes.raw.controls + '">';
+			// Thumbnails
+			if (Instance.gallery.active && Instance.thumbnails) {
+				html += '<div class="' + [RawClasses.thumbnails] + '">';
+				html += '<div class="' + [RawClasses.thumbnail_container] + '">';
+
+				var $item,
+					thumb;
+
+				for (var i = 0, count = Instance.gallery.$items.length; i < count; i++) {
+					$item = Instance.gallery.$items.eq(i);
+					thumb = $item.data("lightbox-thumbnail");
+
+					if (!thumb) {
+						thumb = $item.find("img").attr("src");
+					}
+
+					html += '<button class="' + [RawClasses.thumbnail_item] + '">';
+					html += '<img src="' + thumb + '" alt="">';
+					html += '</button>';
+				}
+
+				html += '</div></div>';
+			}
+
+			html += '<div class="' + RawClasses.content + '"></div>';
+
+			if (isImage || isVideo) {
+
+				html += '<div class="' + RawClasses.tools + '">';
+
+				html += '<div class="' + RawClasses.controls + '">';
 				if (Instance.gallery.active) {
-					html += '<button type="button" class="' + [Classes.raw.control, Classes.raw.control_previous].join(" ") + '">' + Instance.labels.previous + '</button>';
-					html += '<button type="button" class="' + [Classes.raw.control, Classes.raw.control_next].join(" ") + '">' + Instance.labels.next + '</button>';
+					html += '<button type="button" class="' + [RawClasses.control, RawClasses.control_previous].join(" ") + '">' + Instance.labels.previous + '</button>';
+					html += '<button type="button" class="' + [RawClasses.control, RawClasses.control_next].join(" ") + '">' + Instance.labels.next + '</button>';
 				}
 				if (Instance.isMobile && Instance.isTouch) {
-					html += '<button type="button" class="' + [Classes.raw.caption_toggle].join(" ") + '">' + Instance.labels.captionClosed + '</button>';
+					html += '<button type="button" class="' + [RawClasses.toggle, RawClasses.caption_toggle].join(" ") + '">' + Instance.labels.captionClosed + '</button>';
+
+					if (Instance.gallery.active && Instance.thumbnails) {
+						html += '<button type="button" class="' + [RawClasses.toggle, RawClasses.thumbnail_toggle].join(" ") + '">' + Instance.labels.thumbnailsClosed + '</button>';
+					}
 				}
 				html += '</div>'; // controls
 
-				html += '<div class="' + Classes.raw.meta + '">';
+				html += '<div class="' + RawClasses.meta + '">';
+				html += '<div class="' + RawClasses.meta_content + '">';
 				if (Instance.gallery.active) {
-					html += '<p class="' + Classes.raw.position + '"';
+					html += '<p class="' + RawClasses.position + '"';
 					if (Instance.gallery.total < 1) {
 						html += ' style="display: none;"';
 					}
 					html += '>';
-					html += '<span class="' + Classes.raw.position_current + '">' + (Instance.gallery.index + 1) + '</span> ';
+					html += '<span class="' + RawClasses.position_current + '">' + (Instance.gallery.index + 1) + '</span> ';
 					html += Instance.labels.count;
-					html += ' <span class="' + Classes.raw.position_total + '">' + (Instance.gallery.total + 1) + '</span>';
+					html += ' <span class="' + RawClasses.position_total + '">' + (Instance.gallery.total + 1) + '</span>';
 					html += '</p>';
 				}
-				html += '<div class="' + Classes.raw.caption + '">';
+				html += '<div class="' + RawClasses.caption + '">';
 				html += Instance.formatter.call($el, data);
-				html += '</div></div>'; // caption, meta
+				html += '</div></div></div>'; // caption, meta_content, meta
 
 				html += '</div>'; // tools
 			}
-			html += '</div></div></div>'; //container, content, lightbox
+			html += '</div></div>'; //container, content, lightbox
 
 			// Modify Dom
 			$Body.append(html);
 
 			// Cache jquery objects
-			Instance.$overlay          = $(Classes.overlay);
-			Instance.$lightbox         = $(Classes.base);
-			Instance.$close            = $(Classes.close);
-			Instance.$container        = $(Classes.container);
-			Instance.$content          = $(Classes.content);
-			Instance.$tools            = $(Classes.tools);
-			Instance.$meta             = $(Classes.meta);
-			Instance.$position         = $(Classes.position);
-			Instance.$caption          = $(Classes.caption);
-			Instance.$controlBox       = $(Classes.controls);
-			Instance.$controls         = $(Classes.control);
+			Instance.$overlay               = $(Classes.overlay);
+			Instance.$lightbox              = $(Classes.base);
+			Instance.$close                 = $(Classes.close);
+			Instance.$container             = $(Classes.container);
+			Instance.$content               = $(Classes.content);
+			Instance.$tools                 = $(Classes.tools);
+			Instance.$meta                  = $(Classes.meta);
+			Instance.$metaContent           = $(Classes.meta_content);
+			Instance.$position              = $(Classes.position);
+			Instance.$caption               = $(Classes.caption);
+			Instance.$controlBox            = $(Classes.controls);
+			Instance.$controls              = $(Classes.control);
+			Instance.$thumbnails            = $(Classes.thumbnails);
+			Instance.$thumbnailContainer    = $(Classes.thumbnail_container);
+			Instance.$thumbnailItems        = $(Classes.thumbnail_item);
 
 			if (Instance.isMobile) {
 				Instance.paddingVertical   = Instance.$close.outerHeight();
@@ -245,23 +328,29 @@
 
 			// Update gallery
 			if (Instance.gallery.active) {
+				Instance.$lightbox.addClass(RawClasses.has_controls);
 				updateGalleryControls();
 			}
 
 			// Bind events
 			$Window.on(Events.keyDown, onKeyDown);
-
-			$Body.on(Events.clickTouchStart, [Classes.overlay, Classes.close].join(", "), closeLightbox);
+			$Body.on(Events.click, [Classes.overlay, Classes.close].join(", "), closeLightbox)
+				 .on( [ Events.focus, Events.focusIn ].join(" "), onDocumentFocus);
 
 			if (Instance.gallery.active) {
-				Instance.$lightbox.on(Events.clickTouchStart, Classes.control, advanceGallery);
+				Instance.$lightbox.on(Events.click, Classes.control, advanceGallery);
+			}
+
+			if (Instance.thumbnails) {
+				Instance.$lightbox.on(Events.click, Classes.thumbnail_item, jumpGallery);
 			}
 
 			if (Instance.isMobile && Instance.isTouch) {
-				Instance.$lightbox.on(Events.clickTouchStart, Classes.caption_toggle, toggleCaption);
+				Instance.$lightbox.on(Events.click, Classes.caption_toggle, toggleCaption)
+								  .on(Events.click, Classes.thumbnail_toggle, toggleThumbnails);
 			}
 
-			Instance.$lightbox.transition({
+			Instance.$lightbox.fsTransition({
 				property: "opacity"
 			},
 			function() {
@@ -272,13 +361,13 @@
 				} else if (isUrl) {
 					loadURL(source);
 				} else if (isElement) {
-					cloneElement(source);
+					appendContents(source);
 				} else if (isObject) {
 					appendObject(Instance.$object);
 				}
-			}).addClass(Classes.raw.open);
+			}).addClass(RawClasses.open);
 
-			Instance.$overlay.addClass(Classes.raw.open);
+			Instance.$overlay.addClass(RawClasses.open);
 		}
 	}
 
@@ -332,21 +421,28 @@
 		Functions.killEvent(e);
 
 		if (Instance) {
-			Instance.$lightbox.transition("destroy");
-			Instance.$container.transition("destroy");
+			Instance.$lightbox.fsTransition("destroy");
+			Instance.$content.fsTransition("destroy");
 
-			Instance.$lightbox.addClass(Classes.raw.animating).transition({
+			Instance.$lightbox.addClass(RawClasses.animating).fsTransition({
 				property: "opacity"
 			},
 			function(e) {
 				// Clean up
+				if (typeof Instance.$inlineTarget !== 'undefined' && Instance.$inlineTarget.length) {
+					restoreContents();
+				}
+
 				Instance.$lightbox.off(Events.namespace);
 				Instance.$container.off(Events.namespace);
-				$Window.off(Events.namespace);
+				$Window.off(Events.keyDown);
+				$Body.off(Events.namespace);
 				$Body.off(Events.namespace);
 
 				Instance.$overlay.remove();
 				Instance.$lightbox.remove();
+
+				Instance.$el.focus();
 
 				// Reset Instance
 				Instance = null;
@@ -354,11 +450,17 @@
 				$Window.trigger(Events.close);
 			});
 
-			Instance.$lightbox.removeClass(Classes.raw.open);
-			Instance.$overlay.removeClass(Classes.raw.open);
+			Instance.$lightbox.removeClass(RawClasses.open);
+			Instance.$overlay.removeClass(RawClasses.open);
 
 			if (Instance.isMobile) {
 				$Locks.removeClass(RawClasses.lock);
+
+				if (Instance.$viewportMeta) {
+					Instance.$viewportMeta.attr("content", Instance.viewportContent);
+				} else {
+					Instance.$viewportMeta.remove();
+				}
 			}
 		}
 	}
@@ -373,32 +475,46 @@
 		var position = calculatePosition(),
 			durration = Instance.isMobile ? 0 : Instance.duration;
 
-		if (!Instance.isMobile) {
+		if (Instance.isMobile) {
+			var viewportContent = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+
+			if (Instance.$viewportMeta) {
+				Instance.$viewportMeta.attr("content", viewportContent);
+			} else {
+				Instance.$viewportMeta = $("head").append('<meta name="viewport" content="' + viewportContent + '">');
+			}
+		} else {
 			Instance.$controls.css({
-				marginTop: ((Instance.contentHeight - Instance.controlHeight - Instance.metaHeight) / 2)
+				marginTop: ((Instance.contentHeight - Instance.controlHeight - Instance.metaHeight + Instance.thumbnailHeight) / 2)
 			});
 		}
 
-		if (!Instance.visible && Instance.isMobile && Instance.gallery.active) {
-			Instance.$content.touch({
-				axis: "x",
-				swipe: true
-			}).on(Events.swipe, onSwipe);
+		if (Instance.$caption.html() === "") {
+			Instance.$caption.hide();
+			Instance.$lightbox.removeClass(RawClasses.has_caption);
+
+			if (!Instance.gallery.active) {
+				Instance.$tools.hide();
+			}
+		} else {
+			Instance.$caption.show();
+			Instance.$lightbox.addClass(RawClasses.has_caption);
 		}
 
-		Instance.$lightbox.transition({
+		Instance.$lightbox.fsTransition({
 			property: (Instance.contentHeight !== Instance.oldContentHeight) ? "height" : "width"
 		},
 		function() {
-			Instance.$container.transition({
+			Instance.$content.fsTransition({
 				property: "opacity"
 			},
 			function() {
-				Instance.$lightbox.removeClass(Classes.raw.animating);
+				Instance.$lightbox.removeClass(RawClasses.animating);
 				Instance.isAnimating = false;
 			});
 
-			Instance.$lightbox.removeClass(Classes.raw.loading);
+			Instance.$lightbox.removeClass(RawClasses.loading)
+							  .addClass(RawClasses.ready);
 
 			Instance.visible = true;
 
@@ -408,7 +524,12 @@
 			// Start preloading
 			if (Instance.gallery.active) {
 				preloadGallery();
+				updateThumbnails();
+				positionThumbnails();
 			}
+
+			// Focus
+			Instance.$lightbox.focus();
 		});
 
 		if (!Instance.isMobile) {
@@ -423,7 +544,7 @@
 		var contentHasChanged = (Instance.oldContentHeight !== Instance.contentHeight || Instance.oldContentWidth !== Instance.contentWidth);
 
 		if (Instance.isMobile || !contentHasChanged) {
-			Instance.$lightbox.transition("resolve");
+			Instance.$lightbox.fsTransition("resolve");
 		}
 
 		// Track content size changes
@@ -446,7 +567,7 @@
 			var position = calculatePosition();
 
 			Instance.$controls.css({
-				marginTop: ((Instance.contentHeight - Instance.controlHeight - Instance.metaHeight) / 2)
+				marginTop: ((Instance.contentHeight - Instance.controlHeight - Instance.metaHeight + Instance.thumbnailHeight) / 2)
 			});
 
 			Instance.$lightbox.css({
@@ -454,6 +575,9 @@
 				width:  Instance.contentWidth  + Instance.paddingHorizontal,
 				top:    (!Instance.fixed) ? position.top : 0
 			});
+
+			Instance.oldContentHeight = Instance.contentHeight;
+			Instance.oldContentWidth  = Instance.contentWidth;
 		}
 	}
 
@@ -511,8 +635,19 @@
 		if (Instance.captionOpen) {
 			closeCaption();
 		} else {
-			Instance.$lightbox.addClass(Classes.raw.caption_open)
+			closeThumbnails();
+
+			var height = parseInt( Instance.$metaContent.outerHeight(true) );
+			height += parseInt( Instance.$meta.css("padding-top") );
+			height += parseInt( Instance.$meta.css("padding-bottom") );
+
+			Instance.$meta.css({
+				height: height
+			});
+
+			Instance.$lightbox.addClass(RawClasses.caption_open)
 				.find(Classes.caption_toggle).text(Instance.labels.captionOpen);
+
 			Instance.captionOpen = true;
 		}
 	}
@@ -524,7 +659,7 @@
 	 */
 
 	function closeCaption() {
-		Instance.$lightbox.removeClass(Classes.raw.caption_open)
+		Instance.$lightbox.removeClass(RawClasses.caption_open)
 			.find(Classes.caption_toggle).text(Instance.labels.captionClosed);
 		Instance.captionOpen = false;
 	}
@@ -545,46 +680,91 @@
 
 	/**
 	 * @method private
+	 * @name toggleThumbnails
+	 * @description Toggle thumbnails.
+	 */
+
+	function toggleThumbnails(e) {
+		Functions.killEvent(e);
+
+		if (Instance.thumbnailsOpen) {
+			closeThumbnails();
+		} else {
+			closeCaption();
+
+			Instance.$lightbox.addClass(RawClasses.thumbnails_open)
+				.find(Classes.thumbnail_toggle).text(Instance.labels.thumbnailsOpen);
+
+			Instance.thumbnailsOpen = true;
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name closeThumbnails
+	 * @description Close thumbnails.
+	 */
+
+	function closeThumbnails() {
+		Instance.$lightbox.removeClass(RawClasses.thumbnails_open)
+			.find(Classes.thumbnail_toggle).text(Instance.labels.thumbnailsClosed);
+		Instance.thumbnailsOpen = false;
+	}
+
+	/**
+	 * @method private
 	 * @name loadImage
 	 * @description Loads source image.
 	 * @param source [string] "Source image URL"
 	 */
 
 	function loadImage(source) {
-		// Cache current image
-		Instance.$image = $("<img>");
+		if (Instance.isViewer) {
+			Instance.$imageContainer = $('<div class="' + RawClasses.image_container + '"><img></div>');
+			Instance.$image = Instance.$imageContainer.find("img");
 
-		Instance.$image.one(Events.load, function() {
-			var naturalSize = calculateNaturalSize(Instance.$image);
+			Instance.$image.attr("src", source)
+						   .addClass(RawClasses.image);
 
-			Instance.naturalHeight = naturalSize.naturalHeight;
-			Instance.naturalWidth  = naturalSize.naturalWidth;
+			Instance.$content.prepend(Instance.$imageContainer);
 
-			if (Instance.retina) {
-				Instance.naturalHeight /= 2;
-				Instance.naturalWidth  /= 2;
-			}
-
-			Instance.$content.prepend(Instance.$image);
-
-			if (Instance.$caption.html() === "") {
-				Instance.$caption.hide();
-			} else {
-				Instance.$caption.show();
-			}
-
-			// Size content to be sure it fits the viewport
 			sizeImage();
 
-			openLightbox();
+			Instance.$imageContainer.one("loaded.viewer", function() {
+				openLightbox();
+			}).fsViewer({
+				theme: Instance.theme
+			});
+		} else {
+			// Cache current image
+			Instance.$imageContainer = $('<div class="' + RawClasses.image_container + '"><img></div>');
+			Instance.$image = Instance.$imageContainer.find("img");
 
-		}).error(loadError)
-		  .attr("src", source)
-		  .addClass(Classes.raw.image);
+			Instance.$image.one(Events.load, function() {
+				var naturalSize = calculateNaturalSize(Instance.$image);
 
-		// If image has already loaded into cache, trigger load event
-		if (Instance.$image[0].complete || Instance.$image[0].readyState === 4) {
-			Instance.$image.trigger(Events.load);
+				Instance.naturalHeight = naturalSize.naturalHeight;
+				Instance.naturalWidth  = naturalSize.naturalWidth;
+
+				if (Instance.retina) {
+					Instance.naturalHeight /= 2;
+					Instance.naturalWidth  /= 2;
+				}
+
+				Instance.$content.prepend(Instance.$imageContainer);
+
+				// Size content to be sure it fits the viewport
+				sizeImage();
+
+				openLightbox();
+			}).error(loadError)
+			  .attr("src", source)
+			  .addClass(RawClasses.image);
+
+			// If image has already loaded into cache, trigger load event
+			if (Instance.$image[0].complete || Instance.$image[0].readyState === 4) {
+				Instance.$image.trigger(Events.load);
+			}
 		}
 	}
 
@@ -596,93 +776,113 @@
 	 */
 
 	function sizeImage() {
-		var count = 0;
+		if (Instance.$image) {
+			var count = 0;
 
-		Instance.windowHeight = Instance.viewportHeight = Formstone.windowHeight - Instance.mobilePaddingVertical   - Instance.paddingVertical;
-		Instance.windowWidth  = Instance.viewportWidth  = Formstone.windowWidth  - Instance.mobilePaddingHorizontal - Instance.paddingHorizontal;
+			Instance.windowHeight = Instance.viewportHeight = Formstone.windowHeight - Instance.mobilePaddingVertical   - Instance.paddingVertical;
+			Instance.windowWidth  = Instance.viewportWidth  = Formstone.windowWidth  - Instance.mobilePaddingHorizontal - Instance.paddingHorizontal;
 
-		Instance.contentHeight = Infinity;
-		Instance.contentWidth = Infinity;
+			Instance.contentHeight = Infinity;
+			Instance.contentWidth = Infinity;
 
-		Instance.imageMarginTop  = 0;
-		Instance.imageMarginLeft = 0;
+			Instance.imageMarginTop  = 0;
+			Instance.imageMarginLeft = 0;
 
-		while (Instance.contentHeight > Instance.viewportHeight && count < 2) {
-			Instance.imageHeight   = (count === 0) ? Instance.naturalHeight : Instance.$image.outerHeight();
-			Instance.imageWidth    = (count === 0) ? Instance.naturalWidth  : Instance.$image.outerWidth();
-			Instance.metaHeight    = (count === 0) ? 0 : Instance.metaHeight;
-			Instance.spacerHeight  = (count === 0) ? 0 : Instance.spacerHeight;
+			while (Instance.contentHeight > Instance.viewportHeight && count < 2) {
+				Instance.imageHeight     = (count === 0) ? Instance.naturalHeight : Instance.$image.outerHeight();
+				Instance.imageWidth      = (count === 0) ? Instance.naturalWidth  : Instance.$image.outerWidth();
+				Instance.metaHeight      = (count === 0) ? 0 : Instance.metaHeight;
+				Instance.spacerHeight    = (count === 0) ? 0 : Instance.spacerHeight;
+				Instance.thumbnailHeight = (count === 0) ? 0 : Instance.thumbnailHeight;
 
-			if (count === 0) {
-				Instance.ratioHorizontal = Instance.imageHeight / Instance.imageWidth;
-				Instance.ratioVertical   = Instance.imageWidth  / Instance.imageHeight;
-
-				Instance.isWide = (Instance.imageWidth > Instance.imageHeight);
-			}
-
-			// Double check min and max
-			if (Instance.imageHeight < Instance.minHeight) {
-				Instance.minHeight = Instance.imageHeight;
-			}
-			if (Instance.imageWidth < Instance.minWidth) {
-				Instance.minWidth = Instance.imageWidth;
-			}
-
-			if (Instance.isMobile) {
-				if (Instance.isTouch) {
-					Instance.$controlBox.css({
-						width: Formstone.windowWidth
-					});
-					Instance.spacerHeight = Instance.$controls.outerHeight(true);
-				} else {
-					Instance.$tools.css({
-						width: Formstone.windowWidth
-					});
-					Instance.spacerHeight = Instance.$tools.outerHeight(true);
-				}
-
-				// Content match viewport
-				Instance.contentHeight = Instance.viewportHeight;
-				Instance.contentWidth  = Instance.viewportWidth;
-
-				fitImage();
-
-				Instance.imageMarginTop  = (Instance.contentHeight - Instance.targetImageHeight - Instance.spacerHeight) / 2;
-				Instance.imageMarginLeft = (Instance.contentWidth  - Instance.targetImageWidth) / 2;
-			} else {
-				// Viewport should match window, less margin, padding and meta
 				if (count === 0) {
-					Instance.viewportHeight -= (Instance.margin + Instance.paddingVertical);
-					Instance.viewportWidth  -= (Instance.margin + Instance.paddingHorizontal);
+					Instance.ratioHorizontal = Instance.imageHeight / Instance.imageWidth;
+					Instance.ratioVertical   = Instance.imageWidth  / Instance.imageHeight;
+
+					Instance.isWide = (Instance.imageWidth > Instance.imageHeight);
 				}
-				Instance.viewportHeight -= Instance.metaHeight;
 
-				fitImage();
+				// Double check min and max
+				if (Instance.imageHeight < Instance.minHeight) {
+					Instance.minHeight = Instance.imageHeight;
+				}
+				if (Instance.imageWidth < Instance.minWidth) {
+					Instance.minWidth = Instance.imageWidth;
+				}
 
-				Instance.contentHeight = Instance.targetImageHeight;
-				Instance.contentWidth  = Instance.targetImageWidth;
-			}
+				if (Instance.isMobile) {
+					if (Instance.isTouch) {
+						Instance.$controlBox.css({
+							width: Formstone.windowWidth
+						});
+						Instance.spacerHeight = Instance.$controls.outerHeight(true);
+					} else {
+						Instance.$tools.css({
+							width: Formstone.windowWidth
+						});
+						Instance.spacerHeight = Instance.$tools.outerHeight(true);
+					}
 
-			// Modify DOM
-			if (!Instance.isMobile && !Instance.isTouch) {
-				Instance.$meta.css({
-					width: Instance.contentWidth
+					// Content match viewport
+					Instance.contentHeight = Instance.viewportHeight;
+					Instance.contentWidth  = Instance.viewportWidth;
+
+					if (!Instance.isTouch) {
+						Instance.$content.css({
+							height: Instance.contentHeight - Instance.spacerHeight // - 10
+						});
+					}
+
+					Instance.spacerHeight += Instance.$thumbnails.outerHeight(true) + 10;
+
+					fitImage();
+
+					Instance.imageMarginTop  = (Instance.contentHeight - Instance.targetImageHeight - Instance.spacerHeight) / 2;
+					Instance.imageMarginLeft = (Instance.contentWidth  - Instance.targetImageWidth) / 2;
+				} else {
+					// Viewport should match window, less margin, padding and meta
+					if (count === 0) {
+						Instance.viewportHeight -= (Instance.margin + Instance.paddingVertical);
+						Instance.viewportWidth  -= (Instance.margin + Instance.paddingHorizontal);
+					}
+					Instance.viewportHeight -= Instance.metaHeight;
+
+					if (Instance.thumbnails) {
+						Instance.viewportHeight -= Instance.thumbnailHeight;
+					}
+
+					fitImage();
+
+					Instance.contentHeight = Instance.targetImageHeight;
+					Instance.contentWidth  = Instance.targetImageWidth;
+				}
+
+				// Modify DOM
+				if (!Instance.isMobile && !Instance.isTouch) {
+					Instance.$meta.css({
+						width: Instance.contentWidth
+					});
+				}
+
+				Instance.$image.css({
+					height        : Instance.targetImageHeight,
+					width         : Instance.targetImageWidth,
+					marginTop     : Instance.imageMarginTop,
+					marginLeft    : Instance.imageMarginLeft
 				});
+
+				if (!Instance.isMobile) {
+					Instance.metaHeight = Instance.$meta.outerHeight(true);
+					Instance.contentHeight += Instance.metaHeight;
+				}
+
+				if (Instance.thumbnails) {
+					Instance.thumbnailHeight = Instance.$thumbnails.outerHeight(true);
+					Instance.contentHeight += Instance.thumbnailHeight;
+				}
+
+				count ++;
 			}
-
-			Instance.$image.css({
-				height: Instance.targetImageHeight,
-				width:  Instance.targetImageWidth,
-				marginTop:  Instance.imageMarginTop,
-				marginLeft: Instance.imageMarginLeft
-			});
-
-			if (!Instance.isMobile) {
-				Instance.metaHeight = Instance.$meta.outerHeight(true);
-				Instance.contentHeight += Instance.metaHeight;
-			}
-
-			count ++;
 		}
 	}
 
@@ -741,22 +941,39 @@
 	 * @param source [string] "Source video URL"
 	 */
 
+	function formatYouTube(parts) {
+		return "//www.youtube.com/embed/" + parts[1];
+	}
+
+	function formatVimeo(parts) {
+		return "//player.vimeo.com/video/" + parts[3];
+	}
+
 	function loadVideo(source) {
-		var youtubeParts = source.match( /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i ), // 1
-			vimeoParts   = source.match( /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/ ), // 3
-			url = (youtubeParts !== null) ? "//www.youtube.com/embed/" + youtubeParts[1] : "//player.vimeo.com/video/" + vimeoParts[3];
+		var parts,
+			url = checkVideo(source),
+			queryString = source.split("?");
 
-		Instance.$videoWrapper = $('<div class="' + Classes.raw.videoWrapper + '"></div>');
-		Instance.$video = $('<iframe class="' + Classes.raw.video + '" seamless="seamless"></iframe>');
+		if (url) {
+			// if we have a query string
+			if (queryString.length >= 2) {
+				url += "?" + queryString.slice(1)[0].trim();
+			}
 
-		Instance.$video.attr("src", url)
-				   .addClass(Classes.raw.video)
-				   .prependTo(Instance.$videoWrapper);
+			Instance.$videoWrapper = $('<div class="' + RawClasses.video_wrapper + '"></div>');
+			Instance.$video = $('<iframe class="' + RawClasses.video + '" frameborder="0" seamless="seamless" allowfullscreen></iframe>');
 
-		Instance.$content.prepend(Instance.$videoWrapper);
+			Instance.$video.attr("src", url)
+					   .addClass(RawClasses.video)
+					   .prependTo(Instance.$videoWrapper);
 
-		sizeVideo();
-		openLightbox();
+			Instance.$content.prepend(Instance.$videoWrapper);
+
+			sizeVideo();
+			openLightbox();
+		} else {
+			loadError();
+		}
 	}
 
 	/**
@@ -767,7 +984,6 @@
 
 	function sizeVideo() {
 		// Set initial vars
-
 		Instance.windowHeight = Instance.viewportHeight = Formstone.windowHeight - Instance.mobilePaddingVertical   - Instance.paddingVertical;
 		Instance.windowWidth  = Instance.viewportWidth  = Formstone.windowWidth  - Instance.mobilePaddingHorizontal - Instance.paddingHorizontal;
 		Instance.videoMarginTop = 0;
@@ -778,13 +994,15 @@
 				Instance.$controlBox.css({
 					width: Formstone.windowWidth
 				});
-				Instance.spacerHeight = Instance.$controls.outerHeight(true);
+				Instance.spacerHeight = Instance.$controls.outerHeight(true) + 10;
 			} else {
 				Instance.$tools.css({
 					width: Formstone.windowWidth
 				});
 				Instance.spacerHeight = Instance.$tools.outerHeight(true);
+				Instance.spacerHeight += Instance.$thumbnails.outerHeight(true) + 10;
 			}
+
 			Instance.viewportHeight -= Instance.spacerHeight;
 
 			Instance.targetVideoWidth  = Instance.viewportWidth;
@@ -795,11 +1013,11 @@
 				Instance.targetVideoWidth  = Instance.targetVideoHeight / Instance.videoRatio;
 			}
 
-			Instance.videoMarginTop = (Instance.viewportHeight - Instance.targetVideoHeight) / 2;
-			Instance.videoMarginLeft = (Instance.viewportWidth - Instance.targetVideoWidth) / 2;
+			Instance.videoMarginTop  = (Instance.viewportHeight - Instance.targetVideoHeight) / 2;
+			Instance.videoMarginLeft = (Instance.viewportWidth  - Instance.targetVideoWidth)  / 2;
 		} else {
 			Instance.viewportHeight = Instance.windowHeight - Instance.margin;
-			Instance.viewportWidth  = Instance.windowWidth - Instance.margin;
+			Instance.viewportWidth  = Instance.windowWidth  - Instance.margin;
 
 			Instance.targetVideoWidth  = (Instance.videoWidth > Instance.viewportWidth) ? Instance.viewportWidth : Instance.videoWidth;
 			if (Instance.targetVideoWidth < Instance.minWidth) {
@@ -819,15 +1037,20 @@
 		}
 
 		Instance.$videoWrapper.css({
-			height: Instance.targetVideoHeight,
-			width: Instance.targetVideoWidth,
-			marginTop: Instance.videoMarginTop,
+			height:     Instance.targetVideoHeight,
+			width:      Instance.targetVideoWidth,
+			marginTop:  Instance.videoMarginTop,
 			marginLeft: Instance.videoMarginLeft
 		});
 
 		if (!Instance.isMobile) {
 			Instance.metaHeight = Instance.$meta.outerHeight(true);
-			Instance.contentHeight = Instance.targetVideoHeight + Instance.metaHeight;
+			Instance.contentHeight += Instance.metaHeight;
+		}
+
+		if (Instance.thumbnails) {
+			Instance.thumbnailHeight = Instance.$thumbnails.outerHeight(true);
+			Instance.contentHeight += Instance.thumbnailHeight;
 		}
 	}
 
@@ -867,12 +1090,12 @@
 
 		var $control = $(e.currentTarget);
 
-		if (!Instance.isAnimating && !$control.hasClass(Classes.raw.control_disabled)) {
+		if (!Instance.isAnimating && !$control.hasClass(RawClasses.control_disabled)) {
 			Instance.isAnimating = true;
 
 			closeCaption();
 
-			Instance.gallery.index += ($control.hasClass(Classes.raw.control_next)) ? 1 : -1;
+			Instance.gallery.index += ($control.hasClass(RawClasses.control_next)) ? 1 : -1;
 			if (Instance.gallery.index > Instance.gallery.total) {
 				Instance.gallery.index = (Instance.infinite) ? 0 : Instance.gallery.total;
 			}
@@ -880,38 +1103,118 @@
 				Instance.gallery.index = (Instance.infinite) ? Instance.gallery.total : 0;
 			}
 
-			Instance.$lightbox.addClass(Classes.raw.animating);
+			updateThumbnails();
 
-			Instance.$container.transition({
+			Instance.$lightbox.addClass(RawClasses.animating);
+
+			Instance.$content.fsTransition({
 				property: "opacity"
-			},
-			function() {
-				if (typeof Instance.$image !== 'undefined') {
-					Instance.$image.remove();
-				}
-				if (typeof Instance.$videoWrapper !== 'undefined') {
-					Instance.$videoWrapper.remove();
-				}
-				Instance.$el = Instance.gallery.$items.eq(Instance.gallery.index);
+			}, cleanGallery);
 
-				Instance.$caption.html(Instance.formatter.call(Instance.$el, Instance));
-				Instance.$position.find(Classes.position_current).html(Instance.gallery.index + 1);
-
-				var source = Instance.$el.attr("href"),
-					isVideo = checkVideo(source);
-
-				if (isVideo) {
-					loadVideo(source);
-				} else {
-					loadImage(source);
-				}
-
-				updateGalleryControls();
-
-			});
-
-			Instance.$lightbox.addClass(Classes.raw.loading);
+			Instance.$lightbox.addClass(RawClasses.loading);
 		}
+	}
+
+	/**
+	 * @method private
+	 * @name jumpGallery
+	 * @description Jumps gallery base on thumbnail click.
+	 * @param e [object] "Event Data"
+	 */
+
+	function jumpGallery(e) {
+		Functions.killEvent(e);
+
+		var $thumbnail = $(e.currentTarget);
+
+		if (!Instance.isAnimating && !$thumbnail.hasClass(RawClasses.active)) {
+			Instance.isAnimating = true;
+
+			closeCaption();
+
+			Instance.gallery.index = Instance.$thumbnailItems.index($thumbnail);
+
+			updateThumbnails();
+
+			Instance.$lightbox.addClass(RawClasses.animating);
+
+			Instance.$content.fsTransition({
+				property: "opacity"
+			}, cleanGallery);
+
+			Instance.$lightbox.addClass(RawClasses.loading);
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name jumpGallery
+	 * @description
+	 */
+
+	function updateThumbnails() {
+		// Thumbnails
+		if (Instance.thumbnails) {
+			var $thumb = Instance.$thumbnailItems.eq(Instance.gallery.index);
+
+			Instance.$thumbnailItems.removeClass(RawClasses.active);
+			$thumb.addClass(RawClasses.active);
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name jumpGallery
+	 * @description
+	 */
+
+	function positionThumbnails() {
+		// Thumbnails
+		if (Instance.thumbnails) {
+			var $thumb     = Instance.$thumbnailItems.eq(Instance.gallery.index),
+				scrollLeft = $thumb.position().left + ($thumb.outerWidth(false) / 2) - (Instance.$thumbnailContainer.outerWidth(true) / 2);
+
+			Instance.$thumbnailContainer.stop().animate({
+				scrollLeft: scrollLeft
+			}, 200, "linear");
+		}
+	}
+
+	/**
+	 * @method private
+	 * @name cleanGallery
+	 * @description Cleans gallery.
+	 */
+
+	function cleanGallery() {
+		if (typeof Instance.$imageContainer !== 'undefined') {
+			if (Instance.isViewer) {
+				Instance.$imageContainer.fsViewer("destroy");
+			}
+			Instance.$imageContainer.remove();
+		}
+		if (typeof Instance.$videoWrapper !== 'undefined') {
+			Instance.$videoWrapper.remove();
+		}
+		Instance.$el = Instance.gallery.$items.eq(Instance.gallery.index);
+
+		Instance.$caption.html(Instance.formatter.call(Instance.$el, Instance));
+		Instance.$position.find(Classes.position_current).html(Instance.gallery.index + 1);
+
+		var source = Instance.$el.attr("href"),
+			isVideo = checkVideo(source);
+
+		if (isVideo) {
+			Instance.type = "video";
+
+			loadVideo(source);
+		} else {
+			Instance.type = "image";
+
+			loadImage(source);
+		}
+
+		updateGalleryControls();
 	}
 
 	/**
@@ -921,7 +1224,7 @@
 	 */
 
 	function updateGalleryControls() {
-		Instance.$controls.removeClass(Classes.raw.control_disabled);
+		Instance.$controls.removeClass(RawClasses.control_disabled);
 
 		if (!Instance.infinite) {
 			if (Instance.gallery.index === 0) {
@@ -952,14 +1255,26 @@
 
 	/**
 	 * @method private
-	 * @name cloneElement
-	 * @description Clones target inline element.
+	 * @name appendContents
+	 * @description Moves target inline element.
 	 * @param id [string] "Target element id"
 	 */
 
-	function cloneElement(id) {
-		var $clone = $(id).find("> :first-child").clone();
-		appendObject($clone);
+	function appendContents(id) {
+		Instance.$inlineTarget   = $(id);
+		Instance.$inlineContents = Instance.$inlineTarget.children().detach();
+
+		appendObject(Instance.$inlineContents);
+	}
+
+	/**
+	 * @method private
+	 * @name restoreContents
+	 * @description Restores inline element.
+	 */
+
+	function restoreContents() {
+		Instance.$inlineTarget.append( Instance.$inlineContents.detach() );
 	}
 
 	/**
@@ -971,7 +1286,7 @@
 
 	function loadURL(source) {
 		source = source + ((source.indexOf("?") > -1) ? "&" + Instance.requestKey + "=true" : "?" + Instance.requestKey + "=true");
-		var $iframe = $('<iframe class="' + Classes.raw.iframe + '" src="' + source + '"></iframe>');
+		var $iframe = $('<iframe class="' + RawClasses.iframe + '" src="' + source + '"></iframe>');
 		appendObject($iframe);
 	}
 
@@ -1023,17 +1338,25 @@
 			Instance.contentHeight = (Instance.contentHeight > Instance.windowHeight) ? Instance.windowHeight : Instance.contentHeight;
 			Instance.contentWidth  = (Instance.contentWidth  > Instance.windowWidth)  ? Instance.windowWidth  : Instance.contentWidth;
 		}
+
+		if (!Instance.isMobile) {
+			if (Instance.contentHeight > Instance.maxHeight) {
+				Instance.contentHeight = Instance.maxHeight;
+			}
+			if (Instance.contentWidth > Instance.maxWidth) {
+				Instance.contentWidth = Instance.maxWidth;
+			}
+		}
 	}
 
 	/**
 	 * @method private
 	 * @name loadError
 	 * @description Error when resource fails to load.
-	 * @param e [object] "Event data"
 	 */
 
-	function loadError(e) {
-		var $error = $('<div class="' + Classes.raw.error + '"><p>Error Loading Resource</p></div>');
+	function loadError() {
+		var $error = $('<div class="' + RawClasses.error + '"><p>Error Loading Resource</p></div>');
 
 		// Clean up
 		Instance.type = "element";
@@ -1042,19 +1365,8 @@
 		Instance.$image.off(Events.namespace);
 
 		appendObject($error);
-	}
 
-	/**
-	 * @method private
-	 * @name onSwipe
-	 * @description Handles swipe event
-	 * @param e [object] "Event data"
-	 */
-
-	function onSwipe(e) {
-		if (!Instance.captionOpen) {
-			Instance.$controls.filter((e.directionX === "left") ? Classes.control_next : Classes.control_previous).trigger(Events.click);
-		}
+		$Window.trigger(Events.error);
 	}
 
 	/**
@@ -1096,7 +1408,37 @@
 	 */
 
 	function checkVideo(source) {
-		return ( source.indexOf("youtube.com") > -1 || source.indexOf("youtu.be") > -1 || source.indexOf("vimeo.com") > -1 );
+		var formats = Instance.videoFormatter,
+			parts;
+
+		for (var i in formats) {
+			if (formats.hasOwnProperty(i)) {
+				parts = source.match( formats[i].pattern );
+
+				if (parts !== null) {
+					return formats[i].format.call(Instance, parts);
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * @method private
+	 * @name onDocumentFocus
+	 * @description Hanle document focus
+	 * @param e [object] "Event data"
+	 */
+
+	function onDocumentFocus(e) {
+		var target = e.target;
+
+		if (!$.contains(Instance.$lightbox[0], target) && target !== Instance.$lightbox[0] && target !== Instance.$overlay[0]) {
+			Functions.killEvent(e);
+
+			Instance.$lightbox.focus();
+		}
 	}
 
 	/**
@@ -1104,9 +1446,13 @@
 	 * @name Lightbox
 	 * @description A jQuery plugin for simple modals.
 	 * @type widget
+	 * @main lightbox.js
+	 * @main lightbox.css
+	 * @dependency jQuery
 	 * @dependency core.js
 	 * @dependency touch.js
 	 * @dependency transition.js
+	 * @dependency viewer.js (optional)
 	 */
 
 	var Plugin = Formstone.Plugin("lightbox", {
@@ -1115,7 +1461,7 @@
 			/**
 			 * @options
 			 * @param customClass [string] <''> "Class applied to instance"
-			 * @param extensions [array] <"jpg", "sjpg", "jpeg", "png", "gif"> "Image type extensions"
+			 * @param fileTypes [regex] <> "Image file types"
 			 * @param fixed [boolean] <false> "Flag for fixed positioning"
 			 * @param formatter [function] <$.noop> "Caption format function"
 			 * @param infinite [boolean] <false> "Flag for infinite galleries"
@@ -1123,63 +1469,93 @@
 			 * @param labels.count [string] <'of'> "Gallery count separator text"
 			 * @param labels.next [string] <'Next'> "Gallery control text"
 			 * @param labels.previous [string] <'Previous'> "Gallery control text"
-			 * @param labels.captionClosed [string] <'View Caption'> "Mobile caption toggle text, closed state"
+			 * @param labels.captionClosed [string] <'Close Caption'> "Mobile caption toggle text, closed state"
 			 * @param labels.captionOpen [string] <'View Caption'> "Mobile caption toggle text, open state"
+			 * @param labels.thumbnailsClosed [string] <'Close Thumbnails'> "Mobile thumbnails toggle text, closed state"
+			 * @param labels.thumbnailsOpen [string] <'View Thumbnails'> "Mobile thumbnails toggle text, open state"
 			 * @param margin [int] <50> "Margin used when sizing (single side)"
+			 * @param maxHeight [int] <10000> "Maximum height of element modal"
+			 * @param maxWidth [int] <10000> "Maximum width of element modal"
 			 * @param minHeight [int] <100> "Minimum height of modal"
 			 * @param minWidth [int] <100> "Minimum width of modal"
 			 * @param mobile [boolean] <false> "Flag to force 'mobile' rendering"
 			 * @param retina [boolean] <false> "Flag to use 'retina' sizing (halves natural sizes)"
 			 * @param requestKey [string] <'fs-lightbox'> "GET variable for ajax / iframe requests"
+			 * @param theme [string] <"fs-light"> "Theme class name"
+			 * @param thumbnails [boolean] <false> "Flag to display thumbnail strip"
 			 * @param top [int] <0> "Target top position; over-rides centering"
-			 * @param videoRadio [number] <0.5625> "Video height / width ratio (9 / 16 = 0.5625)"
+			 * @param videoFormatter [array] <[]> "Object of video formatter objects containing a 'pattern' regex and 'format' callback"
+			 * @param videoRatio [number] <0.5625> "Video height / width ratio (9 / 16 = 0.5625)"
 			 * @param videoWidth [int] <800> "Video max width"
+			 * @param viewer [boolean] <false> "Flag to force 'Viewer' rendering, if available"
 			 */
 
 			defaults: {
 				customClass    : "",
-				extensions     : [ "jpg", "sjpg", "jpeg", "png", "gif" ],
+				fileTypes      : /\.(jpg|sjpg|jpeg|png|gif)$/i,
 				fixed          : false,
 				formatter      : formatCaption,
 				infinite       : false,
 				labels: {
-					close         : "Close",
-					count         : "of",
-					next          : "Next",
-					previous      : "Previous",
-					captionClosed : "View Caption",
-					captionOpen   : "Close Caption"
+					close            : "Close",
+					count            : "of",
+					next             : "Next",
+					previous         : "Previous",
+					captionClosed    : "View Caption",
+					captionOpen      : "Close Caption",
+					thumbnailsClosed : "View Thumbnails",
+					thumbnailsOpen   : "Close Thumbnails"
 				},
 				margin         : 50,
+				maxHeight      : 10000,
+				maxWidth       : 10000,
 				minHeight      : 100,
 				minWidth       : 100,
 				mobile         : false,
 				retina         : false,
 				requestKey     : "fs-lightbox",
+				theme          : "fs-light",
+				thumbnails     : false,
 				top            : 0,
+				videoFormatter : {
+					"youtube": {
+						pattern : /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/,
+						format  : formatYouTube
+					},
+					"vimeo": {
+						pattern : /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/,
+						format  : formatVimeo
+					}
+				},
 				videoRatio     : 0.5625,
-				videoWidth     : 800
+				videoWidth     : 800,
+				viewer         : true
 			},
 
 			classes: [
 				"loading",
 				"animating",
+				"scaling",
+				"zooming",
 				"fixed",
 				"mobile",
 				"touch",
 				"inline",
 				"iframed",
 				"open",
+				"ready",
 				"overlay",
 				"close",
 				"loading_icon",
 				"container",
 				"content",
 				"image",
+				"image_container",
 				"video",
 				"video_wrapper",
 				"tools",
 				"meta",
+				"meta_content",
 				"controls",
 				"control",
 				"control_previous",
@@ -1188,11 +1564,22 @@
 				"position",
 				"position_current",
 				"position_total",
+				"toggle",
 				"caption_toggle",
 				"caption",
 				"caption_open",
+				"thumbnailed",
+				"thumbnails_open",
+				"thumbnail_toggle",
+				"thumbnails",
+				"thumbnail_container",
+				"thumbnail_item",
+				"active",
+				"has_controls",
+				"has_caption",
 				"iframe",
 				"error",
+				"active",
 				"lock"
 			],
 
@@ -1200,13 +1587,12 @@
 			 * @events
 			 * @event open.lightbox "Lightbox opened; Triggered on window"
 			 * @event close.lightbox "Lightbox closed; Triggered on window"
+			 * @event error.lightbox "Lightbox error; Triggered on window"
 			 */
 
 			events: {
 				open     : "open",
-				close    : "close",
-
-				swipe    : "swipe"
+				close    : "close"
 			},
 
 			methods: {
@@ -1240,9 +1626,13 @@
 		// Internal
 
 		$Locks        = null,
+		OnLoad        = false,
+		OnLoaded      = false,
 
 		// Singleton
 
 		Instance      = null;
 
-})(jQuery, Formstone);
+})
+
+);

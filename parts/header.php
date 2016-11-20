@@ -1,39 +1,61 @@
-<div id="header-wrapper">
-   <?php 
-      // Available Classes for #header:
-      // .forehead: adds some space above the nav.
-      // .fivehead: adds a bunch of space above the nav.
-      // .chin: adds some space below the nav.
-   ?>
-   <header id="header" class="menu-swap">
-      <div class="fs-row">
-         <menu id="header--nav_left" class="fs-cell fs-lg-3 fs-md-2 fs-sm-hide">
-            <a href="#" class="btn btn--nav btn-hamburg swap" data-swap-target=".menu-swap">Menu</a>
-         </menu>
-         <menu id="header--logo" class="fs-cell fs-lg-6 fs-md-2 fs-sm-1 text-center">
-            <a href="/" class="btn btn--nav btn-logo"><?php echo $siteName; ?></a>
-         </menu>
-         <menu id="header--nav_right" class="fs-cell fs-lg-3 fs-md-2 fs-sm-1 text-right">
-            <a href="?page=search" class="btn btn--nav">Search</a>
-         </menu>
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="/assets/img/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/assets/main.min.css">
+<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
+
+<!--[if lt IE 9]>
+<script src="/assets/app.ie.min.js"></script>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+</head>
+
+<body class="fs-grid fs-grid-fluid">
+  <div id="wrapper">
+    <header id="header" class="pinned pinned--top pinned--fixed">
+      <div class="header header--main">
+        <div class="fs-row">
+          <div id="header-nav--left" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          	<div class="menu">
+          		<a href="#" class="btn btn--first swap" data-swap-target="#header, #header-submenu">shop</a>
+          		<a href="#" class="btn">vintage</a>
+          		<a href="#" class="btn">lookbook</a>
+          	</div>
+          </div>
+          <div id="header-nav--center" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          	<div class="menu text-center">
+              <h1><a href="/" class="btn">rxmance</a></h1>
+            </div>
+          </div>
+          <div id="header-nav--right" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          	<div class="menu text-right">
+          		<a href="#" class="btn">studio</a>
+          		<a href="#" class="btn">stockist</a>
+          		<a href="#" class="btn btn--last">cart (0)</a>
+          	</div>
+          </div>
+        </div>
       </div>
-   </header>
-   <?php // Need to figure out how to append this with jQuery rather than by this method ?>
-   <header id="header-mobile">
-      <div class="fs-row">
-         <nav id="header--logo-mobile" class="fs-cell fs-lg-6 fs-md-3 fs-sm-full">
-            <a href="?page=collection" class="btn btn--nav btn-close ss-gizmo ss-plus rotate-45"></a>
-            <a href="?page=collection" class="btn btn--nav">Shop</a>
-            <a href="?page=collection" class="btn btn--nav">Stockists</a>
-         </nav>
+      <div id="header-submenu">
+        <div class="fs-row">
+          <div class="fs-cell fs-all-full">
+            <div class="divider"></div>
+            <div class="menu">
+              <a href="collection.php" class="btn btn--first">men</a>
+              <a href="collection.php" class="btn">women</a>
+              <span class="btn">|</span>
+              <a href="collection.php" class="btn">graphic tees</a>
+              <a href="collection.php" class="btn">sportswear</a>
+              <a href="collection.php" class="btn">sale</a>
+            </div>
+          </div>
+        </div>
       </div>
-   </header>
-   <div id="header--active" class="bg-color-lightPink menu-swap">
-      <div class="fs-row">
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Products</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Where to Buy</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">Stories</a>
-         <a class="btn btn--nav fs-cell fs-lg-fourth fs-md-fourth fs-sm-half text-center" href="#">FAQ</a>
-      </div>
-   </div>
-</div>
+    </header>
