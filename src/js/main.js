@@ -21,8 +21,15 @@ function openModal(){
 	});
 }
 
+function fixedScrolling(){
+	$("#header").headroom();
+	$('.product-info').scrollToFixed({
+		marginTop: 75
+	});
+}
+
 $(document).ready(function(){
 	mobileMenu();
 	openModal();
-	$("#header").headroom();
+	fixedScrolling();
 });

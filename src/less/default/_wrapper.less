@@ -1,0 +1,19 @@
+#wrapper {
+	position: relative;
+	@media @desktop {
+		margin: 0 @spaced;
+	}
+}
+
+#header {
+	&.headroom {
+		@media @min {
+			left: 0;
+			right: 0;
+		}
+		@media @desktop {
+			left: @spaced;
+			right: @spaced;
+		}
+	}
+}

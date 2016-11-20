@@ -181,6 +181,14 @@
 		"sC": 1,
 		"tS": 0
 		},
+	"\/bower.json": {
+		"ft": 524288,
+		"oA": 1,
+		"oAP": "\/bower-min.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
 	"\/collection.php": {
 		"ft": 8192,
 		"oA": 2,
@@ -8733,6 +8741,72 @@
 		"sC": 1,
 		"tS": 0
 		},
+	"\/src\/bower_components\/ScrollToFixed\/.bower.json": {
+		"ft": 524288,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/.bower.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/src\/bower_components\/ScrollToFixed\/bower.json": {
+		"ft": 524288,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/bower.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/src\/bower_components\/ScrollToFixed\/jquery-scrolltofixed-min.js": {
+		"ft": 64,
+		"mi": 1,
+		"oA": 1,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/jquery-scrolltofixed-min.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/src\/bower_components\/ScrollToFixed\/jquery-scrolltofixed.js": {
+		"ft": 64,
+		"mi": 1,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/jquery-scrolltofixed.js",
+		"oF": 0,
+		"sC": 1,
+		"tS": 0
+		},
+	"\/src\/bower_components\/ScrollToFixed\/license.txt": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/license.txt",
+		"oF": 0
+		},
+	"\/src\/bower_components\/ScrollToFixed\/package.json": {
+		"ft": 524288,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/package.json",
+		"oF": 0,
+		"oO": 0,
+		"oS": 1
+		},
+	"\/src\/bower_components\/ScrollToFixed\/README.md": {
+		"cS": 0,
+		"eF": 0,
+		"eL": 1,
+		"eLB": 0,
+		"ema": 1,
+		"eSQ": 1,
+		"ft": 4096,
+		"oA": 2,
+		"oAP": "\/src\/bower_components\/ScrollToFixed\/README.md",
+		"oF": 0,
+		"oFM": 0,
+		"oS": 0,
+		"pHT": 0,
+		"pME": 1,
+		"rFN": 0,
+		"uCM": 0
+		},
 	"\/src\/css\/shopify.css": {
 		"aP": 0,
 		"bl": 0,
@@ -9129,6 +9203,23 @@
 		"sM": 0,
 		"sU": 0
 		},
+	"\/src\/less\/default\/_wrapper.less": {
+		"aP": 0,
+		"bl": 0,
+		"dJ": 0,
+		"ft": 1,
+		"ie": 1,
+		"iI": 0,
+		"ma": 0,
+		"oA": 1,
+		"oAP": "\/src\/less\/css\/_wrapper.css",
+		"oF": 0,
+		"oS": 0,
+		"rU": 0,
+		"sI": 0,
+		"sM": 0,
+		"sU": 0
+		},
 	"\/src\/less\/fonts\/maison-min.css": {
 		"aP": 0,
 		"bl": 0,
@@ -9295,6 +9386,23 @@
 		"ma": 0,
 		"oA": 1,
 		"oAP": "\/src\/less\/css\/_page.css",
+		"oF": 0,
+		"oS": 0,
+		"rU": 0,
+		"sI": 0,
+		"sM": 0,
+		"sU": 0
+		},
+	"\/src\/less\/pages\/_wrapper.less": {
+		"aP": 0,
+		"bl": 0,
+		"dJ": 0,
+		"ft": 1,
+		"ie": 1,
+		"iI": 0,
+		"ma": 0,
+		"oA": 1,
+		"oAP": "\/src\/less\/css\/_wrapper.css",
 		"oF": 0,
 		"oS": 0,
 		"rU": 0,
