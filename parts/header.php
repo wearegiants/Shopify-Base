@@ -8,7 +8,7 @@
 <link rel="shortcut icon" href="/assets/img/favicon.ico">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="stylesheet" href="/assets/main.min.css">
-<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Libre+Franklin" rel="stylesheet">
 
 <!--[if lt IE 9]>
 <script src="/assets/app.ie.min.js"></script>

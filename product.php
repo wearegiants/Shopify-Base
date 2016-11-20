@@ -5,7 +5,7 @@
 <div class="header header--md">&nbsp;</div>
 
 <div class="fs-row">
-	<div class="fs-cell fs-xl-8 fs-lg-8 fs-md-full fs-sm-3">
+	<div class="fs-cell fs-xl-8 fs-lg-8 fs-md-full fs-sm-3 fs-right">
 		<div class="product-image-wrapper">
 			<div class="product-image relative bg--bgGray">
 				<figure class="zoo-item" data-zoo-scale="2" data-zoo-image="http://i.imgur.com/6GUd9k7.png"></figure>

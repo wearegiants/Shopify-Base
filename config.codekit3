@@ -101,6 +101,34 @@
 		"oAP": "\/assets\/MaisonNeue-Book.woff",
 		"oF": 0
 		},
+	"\/assets\/MaisonNeue-Light.eot": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/assets\/MaisonNeue-Light.eot",
+		"oF": 0
+		},
+	"\/assets\/MaisonNeue-Light.svg": {
+		"ft": 2097152,
+		"miP": 0,
+		"oA": 2,
+		"oAP": "\/assets\/MaisonNeue-Light.svg",
+		"oF": 0,
+		"opt": 0,
+		"plM": 3758088159,
+		"prP": 0
+		},
+	"\/assets\/MaisonNeue-Light.ttf": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/assets\/MaisonNeue-Light.ttf",
+		"oF": 0
+		},
+	"\/assets\/MaisonNeue-Light.woff": {
+		"ft": 8192,
+		"oA": 2,
+		"oAP": "\/assets\/MaisonNeue-Light.woff",
+		"oF": 0
+		},
 	"\/assets\/ss-gizmo.eot": {
 		"ft": 8192,
 		"oA": 2,

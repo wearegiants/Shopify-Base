@@ -22,6 +22,7 @@ body {
   -webkit-font-smoothing: antialiased;
   color: @textGray;
   line-height: 1.5;
+  .font_size(15);
 }
 
 body * {
@@ -44,7 +45,6 @@ h6 {
   .headerFont();
   color: inherit;
   line-height: inherit;
-  margin: 2% 0;
 
   &:first-child {
     margin-top: 0;
@@ -224,9 +224,10 @@ select {
     padding: 0;
     border: 0;
     background: none;
+    margin: 0;
     .mainFont();
     position: relative;
-    top: -2px;
+    //top: -2px;
     color: @textGray;
   }
 }
