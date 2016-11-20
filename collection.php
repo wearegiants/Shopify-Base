@@ -33,6 +33,10 @@
 	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
 	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
 	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
+	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
+	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
+	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
+	<div class="fs-cell <?php echo $width; ?>"><?php include('parts/product-grid-item.php'); ?></div>
 </div>
 
 <?php include('parts/footer.php'); ?>

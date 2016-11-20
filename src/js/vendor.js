@@ -13,3 +13,5 @@
 // Other Plugins
 // @codekit-prepend "../bower_components/components-modernizr/modernizr.js"
 // @codekit-prepend "../bower_components/magnific-popup/dist/jquery.magnific-popup.min.js"
+// @codekit-prepend "../bower_components/headroom.js/Headroom.js"
+// @codekit-prepend "../bower_components/headroom.js/jQuery.headroom.js"

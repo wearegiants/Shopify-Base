@@ -25,12 +25,37 @@
 }
 
 #header {
-  
-  background-color: @white;
 
   &.fs-swap-active {
     box-shadow: 0 0 10px rgba(0,0,0,.15);
     padding-bottom: 5px;
+    background-color: @white;
+  }
+
+  .header {
+    transition: 200ms;
+  }
+
+  &.headroom {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    transition: 400ms;
+    z-index: 99;
+    &--not-top {
+      background-color: @white;
+      .header {
+        padding-top: 10px;
+        border-bottom: 1px solid @lighterGray;
+      }
+    }
+    &--pinned {
+      transform: translateY(0);
+      //background-color: @white;
+    }
+    &--unpinned {
+      transform: translateY(-100%);
+    }
   }
 
 	&-submenu {

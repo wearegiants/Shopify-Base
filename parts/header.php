@@ -19,22 +19,22 @@
 
 <body class="fs-grid fs-grid-fluid">
   <div id="wrapper">
-    <header id="header" class="pinned pinned--top pinned--fixed">
+    <header id="header">
       <div class="header header--main">
         <div class="fs-row">
-          <div id="header-nav--left" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          <div id="header-nav--left" class="fs-cell fs-lg-third fs-md-hide fs-sm-hide">
           	<div class="menu">
           		<a href="#" class="btn btn--first swap" data-swap-target="#header, #header-submenu">shop</a>
           		<a href="#" class="btn">vintage</a>
           		<a href="#" class="btn">lookbook</a>
           	</div>
           </div>
-          <div id="header-nav--center" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          <div id="header-nav--center" class="fs-cell fs-lg-third fs-md-full fs-sm-3">
           	<div class="menu text-center">
               <h1><a href="/" class="btn">rxmance</a></h1>
             </div>
           </div>
-          <div id="header-nav--right" class="fs-cell fs-lg-third fs-md-third fs-sm-1">
+          <div id="header-nav--right" class="fs-cell fs-lg-third fs-md-hide fs-sm-hide">
           	<div class="menu text-right">
           		<a href="#" class="btn">studio</a>
           		<a href="#" class="btn">stockist</a>

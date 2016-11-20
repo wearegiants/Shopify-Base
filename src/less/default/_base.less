@@ -207,13 +207,16 @@ select {
   appearance: none;
   -webkit-appearance: none;
   .buttons();
-  //border-radius: 2px;
-  //border: 1px solid darken(@bgGray, 5%);
+  border-radius: 2px;
+  border: 1px solid darken(@bgGray, 5%);
   padding-right: 2.5em;
-  background: url('/assets/img/icon--down.svg') center right .75em no-repeat;
+  background: url('/assets/icon--down.svg') center right .75em no-repeat;
   background-size: 10px auto;
+  color: @textGray;
+  .mainFont()!important;
   //min-width: 150px;
   & option {
+    .mainFont();
     //font-weight: 400!important;
     -webkit-font-smoothing: antialiased;
   }

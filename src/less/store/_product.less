@@ -1,0 +1,22 @@
+.product {
+	&-image {
+		margin-bottom: @spaced;
+	}
+	&-add {
+		.add-to-cart {
+			margin-bottom: 0;
+		}
+		select {
+			width: 100%;
+		}
+		label {
+			.font_size(10);
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: @gray;
+		}
+		&__qty, &__size {
+			margin-bottom: 10px;
+		}
+	}
+}
