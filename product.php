@@ -58,9 +58,9 @@
 					<div class="fs-cell fs-lg-half fs-md-half fs-sm-half"><a href="#"><small>SIZING &amp; FIT</small></a></div>
 					<div class="fs-cell fs-lg-half fs-md-half fs-sm-half">
 						<ul class="menu text-right">
-							<li><a href="#" class="ss-social ss-facebook"></a></li>
-							<li><a href="#" class="ss-social ss-twitter"></a></li>
-							<li><a href="#" class="ss-social ss-pinterist"></a></li>
+							<li><a href="#" class="ss-icon ss-social ss-facebook"></a></li>
+							<li><a href="#" class="ss-icon ss-social ss-twitter"></a></li>
+							<li><a href="#" class="ss-icon ss-social ss-email"></a></li>
 						</ul>
 					</div>
 				</div>
