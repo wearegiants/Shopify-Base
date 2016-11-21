@@ -19,7 +19,8 @@
 <?php #include locate_template('parts/footer-mailchimp.php' ); ?>
 <?php #include locate_template('parts/footer-search.php' ); ?>
 <?php #include locate_template('parts/mobile-menu.php' ); ?>
-
+  
+  </div><!--Content-->
   </div><!--Wrapper-->
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="/assets/vendor.min.js"></script>

@@ -19,7 +19,7 @@
   }
 
   &--main {
-    padding: 40px 0 10px;
+    padding: 10px 0 10px;
   }
   
 }
@@ -27,6 +27,13 @@
 #header {
 
   box-shadow: 0 0 10px @black0;
+  color: @white;
+
+  &:hover {
+    background-color: @white;
+    color: @textGray;
+    box-shadow: 0 0 10px rgba(0,0,0,.15);
+  }
 
   &.fs-swap-active {
     //padding-bottom: 5px;
@@ -40,12 +47,13 @@
 
   &.headroom {
     position: fixed;
-    //width: 100%;
     top: 0;
-    transition: 400ms;
+    transition: 300ms;
     z-index: 9999;
     &--not-top {
       background-color: @white;
+      color: @textGray;
+      box-shadow: 0 0 10px rgba(0,0,0,.15);
       .header {
         padding-top: 10px;
         //border-bottom: 1px solid @lighterGray;

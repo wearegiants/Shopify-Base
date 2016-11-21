@@ -5873,6 +5873,18 @@ table tr th {
 table tr th {
   text-align: center;
 }
+.title--md {
+  font-size: 24px;
+  font-size: 1.5rem;
+}
+.title--lg {
+  font-size: 36px;
+  font-size: 2.25rem;
+}
+.title--xl {
+  font-size: 48px;
+  font-size: 3rem;
+}
 button,
 input[type=submit],
 input[type=search],
@@ -6294,10 +6306,16 @@ input[type=button] {
   padding: 40px 0;
 }
 .header--main {
-  padding: 40px 0 10px;
+  padding: 10px 0 10px;
 }
 #header {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+  color: #fff;
+}
+#header:hover {
+  background-color: #fff;
+  color: #454545;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
 #header.fs-swap-active {
   background-color: #fff;
@@ -6309,11 +6327,13 @@ input[type=button] {
 #header.headroom {
   position: fixed;
   top: 0;
-  transition: 400ms;
+  transition: 300ms;
   z-index: 9999;
 }
 #header.headroom--not-top {
   background-color: #fff;
+  color: #454545;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
 #header.headroom--not-top .header {
   padding-top: 10px;
